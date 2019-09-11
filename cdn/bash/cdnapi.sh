@@ -63,7 +63,7 @@ while getopts "j:dH:i:p" options; do
 done
 
 api_curl_cmd="curl -vsS --url
- '${API_SERVER}/cdnapi$uri' -X $method --compressed
+ '${API_SERVER}$uri' -X $method --compressed
             -u '$USER:$passw'
 			-H 'Date: $DATE'
 			-H 'Content-Type: application/json'
