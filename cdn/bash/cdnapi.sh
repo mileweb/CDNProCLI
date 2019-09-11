@@ -1,5 +1,4 @@
 API_SERVER=https://ngapi.quantil.com
-#API_SERVER=https://ngapi-integration.quantil.com
 
 #This file should contain the definition of two variables:
 #USER='Your API username'
