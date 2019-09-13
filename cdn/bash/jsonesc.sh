@@ -2,7 +2,8 @@
 
 if [ $# -lt 1 ]; then
     echo "This script takes a text file, add escapes for newline, tab, double quote"
-    echo "and back slash to generate a json string."
+    echo "and back slash to generate a json string.  Reference:"
+    echo "https://www.freeformatter.com/json-escape.html"
     echo "Usage:"
     echo "$0 [-u] {filename}"
     echo "-u means unescape. filename of - means stdin"
