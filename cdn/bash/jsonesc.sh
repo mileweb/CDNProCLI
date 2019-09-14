@@ -23,7 +23,7 @@ done
 
 
 if [ ! -f "$fn" -a "$fn" != "-" ]; then
-    echo "bad file: $fn"
+    >&2 echo "bad file: $fn" 
     exit 1;
 fi
 

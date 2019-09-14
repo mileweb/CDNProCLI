@@ -1,3 +1,6 @@
+#!/bin/bash
+set -e
+
 API_SERVER=https://ngapi.quantil.com
 
 #This file should contain the definition of two variables:
@@ -26,17 +29,21 @@ if [ $# -lt 2 ]; then
     echo "$0 GET /properties/{id}                          #query one property"
     echo "$0 GET /properties/{id}/versions                 #query versions list"
     echo "$0 GET /properties/{id}/versions/{ver}           #query one property version"
-    echo "$0 POST /properties -j {body}.json               #create a new property"
-    echo "$0 POST /properties/{id}/versions -j {body}.json #create a new version"
-    echo "$0 PATCH /properties/{id}/versions/{version} -j {body}.json   #update a version"
+    echo "$0 POST /properties -j {body}.json -e {edgelogic}.el     #create a new property"
+    echo "$0 POST /properties/{id}/versions -j {body}.json -e {edgelogic}.el"
+    echo "                                                 #create a new property version"
+    echo "$0 PATCH /properties/{id}/versions/{version} -j {body}.json -e {edgelogic}.el"
+    echo "                                                 #update a version"
     echo "$0 PATCH /properties/{id} -j {body}.json         #update a property"
     echo "$0 DELETE /properties/{id}                       #delete a property"
     echo "$0 GET /certificates                             #query certificate list"
     echo "$0 GET /certificates/{id}                        #query one certificate"
     echo "$0 GET /certificates/{id}/csr                    #download the CSR"
     echo "$0 GET /certificates/{id}/versions/{ver}         #query one certificate version"
-    echo "$0 POST /certificates -j {body}.json             #create a new certificate"
-    echo "$0 PATCH /certificates/{id} -j {body}.json       #update a certificate"
+    echo "$0 POST /certificates -j {body}.json [-k key.pem] [-c cert.pem] [-a cacert.pem]"
+    echo "                                                 #create a new certificate"
+    echo "$0 PATCH /certificates/{id} -j {body}.json [-k key.pem] [-c cert.pem] [-a cacert.pem]"
+    echo "                                                 #update a certificate"
     echo "$0 DELETE /certificates/{id}                     #delete a certificate"
     echo "$0 POST /validations -j {body}.json              #create a validation task"
     echo "$0 GET /validations                              #query validation task list"
@@ -59,10 +66,14 @@ uri=$2
 shift 2;
 
 jsonfn=
+privkeyfn=
+certfn=
+cacertfn=
+edgelogicfn=
 headers=
 jsonpp=
 
-while getopts "j:dH:i:p" options; do
+while getopts "j:dH:i:pk:c:a:e:" options; do
   case "${options}" in                          
     j)
       jsonfn=${OPTARG}
@@ -78,6 +89,18 @@ while getopts "j:dH:i:p" options; do
       ;;
     p)
       jsonpp='|grep ^{\"|json_pp'
+      ;;
+    k)
+      privkeyfn="${OPTARG}"
+      ;;
+    c)
+      certfn="${OPTARG}"
+      ;;
+    a)
+      cacertfn="${OPTARG}"
+      ;;
+    e)
+      edgelogicfn="${OPTARG}"
       ;;
     :)
       echo "Error: -${OPTARG} requires an argument."
@@ -97,10 +120,29 @@ api_curl_cmd="curl -vsS --url
 			-H 'Content-Type: application/json'
 			-H 'Accept: application/json'
 			$headers
-		"
+"
+tempfn=
 if [ "$method" = "POST" -o "$method" = "PUT" -o "$method" = "PATCH" ]; then
   if [ -f "$jsonfn" ]; then
-    api_curl_cmd+=" -d @$jsonfn"
+    case "$uri" in
+      /properties*)
+        tempfn=$(mktemp ./property.json.XXXXXX)
+        ./build-property-body.sh "$jsonfn" "$edgelogicfn" > "$tempfn" ||
+          ( rm "$tempfn"; exit 1 )
+        jsonfn="$tempfn"
+        ;;
+      /certificates*)
+        tempfn=$(mktemp ./cert.json.XXXXXX)
+        certcmd="./build-cert-body.sh '$jsonfn' "
+        [ -f "$privkeyfn" ] && certcmd+="-k '$privkeyfn' -d '$DATE' "
+        [ -f "$certfn" ] && certcmd+="-c '$certfn' "
+        [ -f "$cacertfn" ] && certcmd+="-a '$cacertfn'"
+        eval $certcmd > "$tempfn" ||
+          ( rm "$tempfn"; exit 1 )
+        jsonfn="$tempfn"
+        ;;
+    esac
+    api_curl_cmd+=" -d @'$jsonfn'"
   else
     echo "Method \"$method\" requires a valid json file to be specified after -j"
     exit 1
@@ -108,7 +150,8 @@ if [ "$method" = "POST" -o "$method" = "PUT" -o "$method" = "PATCH" ]; then
 fi
 
 echo $api_curl_cmd
+#exit
 time eval $api_curl_cmd $jsonpp
 echo " "
-
+[ -f "$tempfn" ] && rm "$tempfn"
 exit 0;

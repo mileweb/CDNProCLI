@@ -1,0 +1,22 @@
+{
+    "schemeInCacheKey" : false,
+    "hostnames" : [
+        "testqtlcli.qtlcdn.com"
+    ],
+    "origins" : [
+        {
+            "supportSni" : false,
+            "directConnection" : "auto",
+            "servers" : [
+                "163.171.234.142:80"
+            ],
+            "verifyOrigin" : false,
+            "name" : "scmftp",
+            "supportedProtocol" : "both"
+        }
+    ],
+    "hasBeian" : false,
+    "syntaxVersion" : "1",
+    "serverScript" :  _EDGE_LOGIC_,
+    "description" : "description of the version"
+}

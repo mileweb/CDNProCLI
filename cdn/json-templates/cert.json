@@ -1,0 +1,11 @@
+{
+    "name":"my certificate",
+    "description":"test create certificate through qtlcli",
+    "autoRenew":"LE",
+    "newVersion":{
+        "comments":"comments about this initial version",
+        "privateKey": _PRIVATE_KEY_,
+        "certificate":_CERTIFICATE_,
+        "chainCert":_CA_CERTIFICATE_
+    }
+}
