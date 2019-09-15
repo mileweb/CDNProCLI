@@ -16,9 +16,9 @@ API_KEY='You secret API key'
 #query all certificates
 ./cdnapi.sh GET /certificates -p
 #create a certificate
-./cdnapi.sh POST /certificates -p -j ../json-template/cert.json -k privkey.pem -c cert.pem -a chain.pem
+./cdnapi.sh POST /certificates -p -j ../json-templates/cert.json -k privkey.pem -c cert.pem -a chain.pem
 #query all properties
 ./cdnapi.sh GET /properties -p
 #create a property
-./cdnapi.sh POST /properties -p -j ../json-template/property.json -e edgescript.txt
+./cdnapi.sh POST /properties -p -j ../json-templates/property.json -e edgescript.txt
 ```
