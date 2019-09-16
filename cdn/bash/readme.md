@@ -26,4 +26,4 @@ API_KEY='You secret API key'
 ```
 
 # Dependencies
-Effort has been made to minimize any 3rd party package requirements. The only dependency is to have ```openssl``, ```sed``` and ```grep``` available in your bash environment.
+Effort has been made to minimize any 3rd party package requirements. The only dependency is to have ```openssl```, ```sed``` and ```grep``` available in your bash environment.
