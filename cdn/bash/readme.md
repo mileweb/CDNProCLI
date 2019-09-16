@@ -24,3 +24,6 @@ API_KEY='You secret API key'
 #create a property
 ./cdnapi.sh POST /properties -p -j ../json-templates/property.json -e edgescript.txt
 ```
+
+# Dependencies
+Effort has been made to minimize any 3rd party package requirements. The only dependency to have ```sed``` and ```grep``` available in your bash environment.
