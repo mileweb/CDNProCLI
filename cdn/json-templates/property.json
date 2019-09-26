@@ -20,7 +20,7 @@
         ],
         "hasBeian" : false,
         "syntaxVersion" : "1",
-        "serverScript" : _EDGE_LOGIC_,
+        "edgeLogic" : _EDGE_LOGIC_,
         "description" : "version description"
     }
 }
