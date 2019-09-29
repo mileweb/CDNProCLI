@@ -62,6 +62,8 @@ fi
 
 method=$1
 uri=$2
+uribase=/cdnapi
+[ ${uri:0:7} = "/report" ] && uribase=
 
 shift 2;
 
@@ -72,8 +74,9 @@ cacertfn=
 edgelogicfn=
 headers=
 jsonpp=
+jsonbody=
 
-while getopts "j:dH:i:pk:c:a:e:" options; do
+while getopts "j:dH:i:pk:c:a:e:b:" options; do
   case "${options}" in                          
     j)
       jsonfn=${OPTARG}
@@ -102,6 +105,9 @@ while getopts "j:dH:i:pk:c:a:e:" options; do
     e)
       edgelogicfn="${OPTARG}"
       ;;
+    b)
+      jsonbody="${OPTARG}"
+      ;;
     :)
       echo "Error: -${OPTARG} requires an argument."
       exit 1
@@ -114,7 +120,7 @@ while getopts "j:dH:i:pk:c:a:e:" options; do
 done
 
 api_curl_cmd="curl -vsS --url
- '${API_SERVER}/cdnapi$uri' -X $method --compressed
+ '${API_SERVER}${uribase}$uri' -X $method --compressed
             -u '$USER:$passw'
 			-H 'Date: $DATE'
 			-H 'Content-Type: application/json'
@@ -143,6 +149,8 @@ if [ "$method" = "POST" -o "$method" = "PUT" -o "$method" = "PATCH" ]; then
         ;;
     esac
     api_curl_cmd+=" -d @'$jsonfn'"
+  elif [ "$jsonbody" ]; then
+    api_curl_cmd+=" -d '$jsonbody'"
   else
     echo "Method \"$method\" requires a valid json file to be specified after -j"
     exit 1
@@ -150,7 +158,7 @@ if [ "$method" = "POST" -o "$method" = "PUT" -o "$method" = "PATCH" ]; then
 fi
 
 echo $api_curl_cmd
-#exit
+#exit  #for testing
 time eval $api_curl_cmd $jsonpp
 echo " "
 [ -f "$tempfn" ] && rm "$tempfn"
