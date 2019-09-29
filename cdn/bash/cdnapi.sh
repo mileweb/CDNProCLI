@@ -132,10 +132,12 @@ if [ "$method" = "POST" -o "$method" = "PUT" -o "$method" = "PATCH" ]; then
   if [ -f "$jsonfn" ]; then
     case "$uri" in
       /properties*)
-        tempfn=$(mktemp ./property.json.XXXXXX)
-        ./build-property-body.sh "$jsonfn" "$edgelogicfn" > "$tempfn" ||
-          ( rm "$tempfn"; exit 1 )
-        jsonfn="$tempfn"
+        if [ -f "$edgelogicfn" ]; then
+          tempfn=$(mktemp ./property.json.XXXXXX)
+          ./build-property-body.sh "$jsonfn" "$edgelogicfn" > "$tempfn" ||
+            ( rm "$tempfn"; exit 1 )
+          jsonfn="$tempfn"
+        fi
         ;;
       /certificates*)
         tempfn=$(mktemp ./cert.json.XXXXXX)
@@ -153,6 +155,7 @@ if [ "$method" = "POST" -o "$method" = "PUT" -o "$method" = "PATCH" ]; then
     api_curl_cmd+=" -d '$jsonbody'"
   else
     echo "Method \"$method\" requires a valid json file to be specified after -j"
+    echo "                   or a json body specified after -b"
     exit 1
   fi
 fi
