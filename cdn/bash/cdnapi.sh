@@ -8,7 +8,7 @@ API_SERVER=https://ngapi.quantil.com
 #API_KEY='You API key'
 source ./SECRET_api_credential.txt
 
-DATE=`date -u "+%a, %d %b %Y %H:%M:%S %Z"`
+DATE=`LC_TIME="C" date -u "+%a, %d %b %Y %H:%M:%S %Z"`
 #echo $DATE
 # Generate authentication info
 passw=$(echo -n "$DATE" | openssl dgst -sha1 -hmac "$API_KEY" -binary | base64)
