@@ -33,6 +33,6 @@ Effort has been made to minimize any 3rd party package requirements. The only de
 # Troubleshooting
 1. One thing to note is to make sure the json body does not contain any un-printable control characters. Otherwise you will receive errors like the following from the API server:
 ```
-Illegal unquoted character ((CTRL-CHAR, code 9))
+Illegal unquoted character ((CTRL-CHAR, code 6))
 ```
-which means you have a special character 0x09 in your json template or your edge logic file.
+which means you have a special character 0x06 in your json template or your edge logic file.
