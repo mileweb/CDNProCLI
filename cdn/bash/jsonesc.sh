@@ -32,9 +32,9 @@ if [ "$fn" = "-" ]; then
 fi
 
 if [ $unesc = 0 ]; then
-sed -e ':a' -e 'N' -e '$!ba' -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e 's/   /\\t/g' -e 's/\n/\\n/g' $fn
+sed -e ':a' -e 'N' -e '$!ba' -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e 's/	/\\t/g' -e 's/\n/\\n/g' $fn
 else
-sed -e 's/\\\\/__\\__/g' -e 's/\\"/"/g' -e 's/\\t/   /g' -e 's/\\n/\
+sed -e 's/\\\\/__\\__/g' -e 's/\\"/"/g' -e 's/\\t/	/g' -e 's/\\n/\
 /g' -e 's/__\\__/\\/g' $fn
 fi
 
