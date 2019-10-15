@@ -2,7 +2,7 @@ Here is the bash CLI toolset for managing CDN service.
 [cdnapi.sh](cdnapi.sh) is the main script.
 
 # Instructions
-0. Clone this repository, of course.
+0. Installation, of course: ```git clone https://github.com/mileweb/qtlcli.git```
 1. You need to create a file SECRET_api_credential.txt under this directory. the content should be:
 ```
 USER='Your API username'
