@@ -1,0 +1,8 @@
+{
+"name": "New deployment task!",
+"actions":[
+  {"action":"deploy_cert", "certificateId":"5d0fe62194a75d0001c5b1c7", "version":"5"}
+],
+"target" :"production"
+}
+
