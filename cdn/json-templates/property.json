@@ -21,6 +21,16 @@
         "hasBeian" : false,
         "syntaxVersion" : "1",
         "edgeLogic" : _EDGE_LOGIC_,
-        "description" : "version description"
+        "description" : "version description",
+        "realTimeLog": {
+             "logUrl":"https://notify.abc.com/notify",
+             "sampleRate": 1,
+             "escape": "json",
+             "format": "any printable text with some variables supported by our server",
+             "headers": [
+                {"name":"X-My-Header", "value":"123abc"}
+             ]
+        }
+
     }
 }

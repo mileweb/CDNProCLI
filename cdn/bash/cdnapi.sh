@@ -58,7 +58,7 @@ fi
 
 method=$1
 uri=$2
-uribase=/cdnapi
+uribase=/cdn
 [ ${uri:0:7} = "/report" ] && uribase=
 
 shift 2;
