@@ -56,10 +56,11 @@ if [ $# -lt 2 ]; then
     exit 0;
 fi
 
+appname=$0
 method=$1
 uri=$2
 uribase=/cdn
-[ ${uri:0:7} = "/report" ] && uribase=
+[[ ${appname} == *adminapi.sh ]] && uribase=/ngadmin
 
 shift 2;
 
