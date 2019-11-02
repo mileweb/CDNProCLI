@@ -11,7 +11,7 @@ if [ $# -lt 2 ]; then
     echo "                  -d # add the x-debug header"
     echo "                  -i {child customer ID to impersonate}"
     echo "                  -H 'headerName: headerValue' # add additional request header"
-    echo "                  -p # prettify the json body (only works on Mac for now)"
+    echo "                  -p # prettify the json body (works on Mac or with nodejs)"
     echo "                  -k {private key file in PEM format}"
     echo "                  -c {certificate file in PEM format}"
     echo "                  -a {CA certificate file in PEM format}"
