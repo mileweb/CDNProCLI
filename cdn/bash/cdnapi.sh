@@ -127,7 +127,7 @@ API_SERVER=https://ngapi.quantil.com
 #This file should contain the definition of two variables:
 #USER='Your API username'
 #API_KEY='You API key'
-source ./SECRET_api_credential.txt
+source ${appdir}/SECRET_api_credential.txt
 
 DATE=`LC_TIME="C" date -u "+%a, %d %b %Y %H:%M:%S GMT"`
 #echo $DATE
