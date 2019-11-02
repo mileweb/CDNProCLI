@@ -170,7 +170,7 @@ if [ "$method" = "POST" -o "$method" = "PUT" -o "$method" = "PATCH" ]; then
   fi
 fi
 
-echo $api_curl_cmd
+echo $api_curl_cmd >& 2
 #exit  #for testing
 time eval $api_curl_cmd $jsonpp
 echo " "
