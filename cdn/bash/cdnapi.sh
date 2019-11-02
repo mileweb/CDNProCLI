@@ -12,6 +12,7 @@ if [ $# -lt 2 ]; then
     echo "                  -i {child customer ID to impersonate}"
     echo "                  -H 'headerName: headerValue' # add additional request header"
     echo "                  -p # prettify the json body (works on Mac or with nodejs)"
+    echo "                  -v {verbose level 0, 1, 2} # silent some stderr
     echo "                  -k {private key file in PEM format}"
     echo "                  -c {certificate file in PEM format}"
     echo "                  -a {CA certificate file in PEM format}"
@@ -57,7 +58,7 @@ if [ $# -lt 2 ]; then
 fi
 
 appname=$0
-while readlink "${appname}"; do
+while readlink "${appname}" > /dev/null; do
   appname=`readlink "${appname}"`
 done
 appdir=$(dirname "${appname}")
@@ -76,8 +77,9 @@ edgelogicfn=
 headers=
 jsonpp=
 jsonbody=
+verbopt="-vSs"
 
-while getopts "j:dH:i:pk:c:a:e:b:" options; do
+while getopts "j:dH:i:pk:c:a:e:b:v:" options; do
   case "${options}" in                          
     j)
       jsonfn=${OPTARG}
@@ -92,9 +94,9 @@ while getopts "j:dH:i:pk:c:a:e:b:" options; do
       headers+=" -H '${OPTARG}'"
       ;;
     p)
-      if node -v ; then
+      if node -v > /dev/null; then
         jsonpp="|grep ^{\\\"|node \"${appdir}/../../common/json_pp.js\""
-      elif json_pp -V ; then
+      elif json_pp -V > /dev/null; then
         jsonpp='|grep ^{\"|json_pp'
       fi
       ;;
@@ -112,6 +114,11 @@ while getopts "j:dH:i:pk:c:a:e:b:" options; do
       ;;
     b)
       jsonbody="${OPTARG}"
+      ;;
+    v)
+      if [ ${OPTARG} = 0 ]; then verbopt="-Ss"
+      elif [ ${OPTARG} = 1 ]; then verbopt="-iSs"
+      fi
       ;;
     :)
       echo "Error: -${OPTARG} requires an argument."
@@ -137,7 +144,7 @@ DATE=`LC_TIME="C" date -u "+%a, %d %b %Y %H:%M:%S GMT"`
 passw=$(echo -n "$DATE" | openssl dgst -sha1 -hmac "$API_KEY" -binary | base64)
 #echo $passw
 
-api_curl_cmd="curl -vsS --url
+api_curl_cmd="curl ${verbopt} --url
  '${API_SERVER}${uribase}$uri' -X $method --compressed
             -u '$USER:$passw'
 			-H 'Date: $DATE'
@@ -178,7 +185,7 @@ if [ "$method" = "POST" -o "$method" = "PUT" -o "$method" = "PATCH" ]; then
   fi
 fi
 
-echo $api_curl_cmd >& 2
+[ $verbopt = "-Ss" ]||echo $api_curl_cmd >& 2
 #exit  #for testing
 time eval $api_curl_cmd $jsonpp
 echo " "
