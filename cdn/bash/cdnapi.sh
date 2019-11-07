@@ -188,7 +188,7 @@ fi
 
 [ $verbopt = "-Ss" ]||echo $api_curl_cmd >& 2
 #exit  #for testing
-time eval $api_curl_cmd $jsonpp
+eval $api_curl_cmd $jsonpp
 echo " "
 [ -f "$tempfn" ] && rm "$tempfn"
 exit 0;
