@@ -58,14 +58,15 @@ if [ $# -lt 2 ]; then
 fi
 
 appname=$0
+uribase=/cdn
+[[ ${appname} == *adminapi.sh ]] && uribase=/ngadmin
+
 while readlink "${appname}" > /dev/null; do
   appname=`readlink "${appname}"`
 done
 appdir=$(dirname "${appname}")
 method=$1
 uri=$2
-uribase=/cdn
-[[ ${appname} == *adminapi.sh ]] && uribase=/ngadmin
 
 shift 2;
 
