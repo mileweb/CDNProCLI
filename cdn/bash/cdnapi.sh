@@ -12,7 +12,7 @@ if [ $# -lt 2 ]; then
     echo "                  -i {child customer ID to impersonate}"
     echo "                  -H 'headerName: headerValue' # add additional request header"
     echo "                  -p # prettify the json body (works on Mac or with nodejs)"
-    echo "                  -v {verbose level 0, 1, 2} # silent some stderr"
+    echo "                  -v {verbose level 0-4} # >=3 has respose headers in stdout"
     echo "                  -k {private key file in PEM format}"
     echo "                  -c {certificate file in PEM format}"
     echo "                  -a {CA certificate file in PEM format}"
@@ -78,6 +78,7 @@ edgelogicfn=
 headers=
 jsonpp=
 jsonbody=
+verblevel=2
 verbopt="-vSs"
 
 while getopts "j:dH:i:pk:c:a:e:b:v:" options; do
@@ -117,8 +118,10 @@ while getopts "j:dH:i:pk:c:a:e:b:v:" options; do
       jsonbody="${OPTARG}"
       ;;
     v)
-      if [ ${OPTARG} = 0 ]; then verbopt="-Ss"
-      elif [ ${OPTARG} = 1 ]; then verbopt="-iSs"
+      verblevel=${OPTARG}
+      if [ ${OPTARG} -lt 2 ]; then verbopt="-sS"
+      elif [ ${OPTARG} = 3 ]; then verbopt="-isS"
+      elif [ ${OPTARG} = 4 ]; then verbopt="-visS"
       fi
       ;;
     :)
@@ -137,7 +140,11 @@ API_SERVER=https://ngapi.quantil.com
 #This file should contain the definition of two variables:
 #USER='Your API username'
 #API_KEY='You API key'
-source ${appdir}/SECRET_api_credential.txt
+if [ -f ./SECRET_api_credential.txt ]; then
+  source ./SECRET_api_credential.txt
+else
+  source $appdir/SECRET_api_credential.txt
+fi
 
 DATE=`LC_TIME="C" date -u "+%a, %d %b %Y %H:%M:%S GMT"`
 #echo $DATE
@@ -160,14 +167,14 @@ if [ "$method" = "POST" -o "$method" = "PUT" -o "$method" = "PATCH" ]; then
       /properties*)
         if [ -f "$edgelogicfn" ]; then
           tempfn=$(mktemp ./property.json.XXXXXX)
-          ./build-property-body.sh "$jsonfn" "$edgelogicfn" > "$tempfn" ||
+          ${appdir}/build-property-body.sh "$jsonfn" "$edgelogicfn" > "$tempfn" ||
             ( rm "$tempfn"; exit 1 )
           jsonfn="$tempfn"
         fi
         ;;
       /certificates*)
         tempfn=$(mktemp ./cert.json.XXXXXX)
-        certcmd="./build-cert-body.sh '$jsonfn' "
+        certcmd="${appdir}/build-cert-body.sh '$jsonfn' "
         [ -f "$privkeyfn" ] && certcmd+="-k '$privkeyfn' -d '$DATE' "
         [ -f "$certfn" ] && certcmd+="-c '$certfn' "
         [ -f "$cacertfn" ] && certcmd+="-a '$cacertfn'"
@@ -186,7 +193,7 @@ if [ "$method" = "POST" -o "$method" = "PUT" -o "$method" = "PATCH" ]; then
   fi
 fi
 
-[ $verbopt = "-Ss" ]||echo $api_curl_cmd >& 2
+[ $verblevel = 0 ]||echo $api_curl_cmd >& 2
 #exit  #for testing
 eval $api_curl_cmd $jsonpp
 echo " "

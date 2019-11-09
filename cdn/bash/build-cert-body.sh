@@ -16,6 +16,11 @@ if [ $# -lt 1 ]; then
     exit 0;
 fi
 
+appname=$0
+while readlink "${appname}" > /dev/null; do
+  appname=`readlink "${appname}"`
+done
+appdir=$(dirname "${appname}")
 jsonfn=$1
 shift
 privkeyfn=
@@ -51,11 +56,15 @@ done
 enckey=
 if [ -f "$privkeyfn" ]; then
   [ -z "$datestr" ] && ( >&2 echo "missing datestr!"; exit 1; )
-  source ./SECRET_api_credential.txt
+  if [ -f ./SECRET_api_credential.txt ]; then
+    source ./SECRET_api_credential.txt
+  else
+    source $appdir/SECRET_api_credential.txt
+  fi
   passw=$(echo -n "$datestr" | openssl dgst -sha256 -hmac "$API_KEY" -r)
   aes128cbciv=${passw:0:32}
   aes128cbckey=${passw:32:32}
-  enckey=$(cat $privkeyfn | openssl aes-128-cbc -base64 -nosalt -K $aes128cbckey -iv $aes128cbciv | ./jsonesc.sh -)
+  enckey=$(cat $privkeyfn | openssl aes-128-cbc -base64 -nosalt -K $aes128cbckey -iv $aes128cbciv | $appdir/jsonesc.sh -)
 fi
 
 while IFS= read -r line
@@ -67,13 +76,13 @@ do
     echo "$line" |sed "s/_PRIVATE_KEY_/\"$esc3\"/"
   elif echo "$line" | grep -q '"certificate" *: *_CERTIFICATE_'; then
     [ -f "$certfn" ] || ( >&2 echo "$jsonfn contains _CERTIFICATE_ but missing certificate file!"; exit 1; )
-    esc1=$(./jsonesc.sh $certfn)
+    esc1=$($appdir/jsonesc.sh $certfn)
     esc2=${esc1//\\/\\\\}   #some additional substitutions for sed
     esc3=${esc2//\//\\/}
     echo "$line" |sed "s/_CERTIFICATE_/\"$esc3\"/"
   elif echo "$line" | grep -q '"chainCert" *: *_CA_CERTIFICATE_'; then
     [ -f "$cacertfn" ] || ( >&2 echo "$jsonfn contains _CA_CERTIFICATE_ but missing CA certificate file!"; exit 1; )
-    esc1=$(./jsonesc.sh $cacertfn)
+    esc1=$($appdir/jsonesc.sh $cacertfn)
     esc2=${esc1//\\/\\\\}   #some additional substitutions for sed
     esc3=${esc2//\//\\/}
     echo "$line" |sed "s/_CA_CERTIFICATE_/\"$esc3\"/"

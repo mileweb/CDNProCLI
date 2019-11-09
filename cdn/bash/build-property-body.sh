@@ -16,6 +16,12 @@ if [ $# -lt 1 ]; then
     exit 0;
 fi
 
+appname=$0
+while readlink "${appname}" > /dev/null; do
+  appname=`readlink "${appname}"`
+done
+appdir=$(dirname "${appname}")
+
 jsonfn=$1
 elfn=$2
 
@@ -23,11 +29,11 @@ while IFS= read -r line
 do
   if echo "$line" | grep -q '"\(edgeLogic\|serverScript\)" *: *_EDGE_LOGIC_'; then
       [ -f "$elfn" ] || ( >&2 echo "$jsonfn contains _EDGE_LOGIC_ but missing edge script file!"; exit 1; )
-      esc1=$(./jsonesc.sh $elfn);
+      esc1=$($appdir/jsonesc.sh $elfn);
       esc2=${esc1//\\/\\\\}   #some additional substitutions for sed
       esc3=${esc2//\//\\/}
       echo "$line" |sed "s/_EDGE_LOGIC_/\"$esc3\"/"
-#      printf "%s\n" "\"serverScript\":\"$(./jsonesc.sh $elfn)\""
+#      printf "%s\n" "\"serverScript\":\"$($appdir/jsonesc.sh $elfn)\""
   else
       echo "$line"
   fi
