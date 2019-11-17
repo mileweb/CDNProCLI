@@ -62,7 +62,7 @@ uribase=/cdn
 [[ ${appname} == *adminapi.sh ]] && uribase=/ngadmin
 
 while readlink "${appname}" > /dev/null; do
-  appname=`readlink -f "${appname}"`
+  appname=`readlink "${appname}"`
 done
 appdir=$(dirname "${appname}")
 method=$1
