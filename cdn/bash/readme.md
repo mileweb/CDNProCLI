@@ -25,19 +25,19 @@ The [json-template](../json-templates) folder within this repository contains so
 # Examples
 
 ### query all certificates
-```http
+```bash
 ./cdnapi.sh GET /certificates -p
 ```
 ### create a certificate
-```http
+```bash
 ./cdnapi.sh POST /certificates -p -j ../json-templates/cert.json -k privkey.pem -c cert.pem -a chain.pem
 ```
 ### query all properties
-```http
+```bash
 ./cdnapi.sh GET /properties -p
 ```
 ### create a property
-```http
+```bash
 ./cdnapi.sh POST /properties -p -j ../json-templates/property.json -e edgescript.txt
 ```
 
