@@ -16,6 +16,7 @@ if [ $# -lt 2 ]; then
     echo "                  -k {private key file in PEM format}"
     echo "                  -c {certificate file in PEM format}"
     echo "                  -a {CA certificate file in PEM format}"
+    echo "                  -l {date range for reports. 2d means the last 2 days}"
     echo "                  -e {edge logic file}"
     echo "                  -b {json body}"
     echo "Note: You need to put your API username and key in a file named"
@@ -81,7 +82,7 @@ jsonbody=
 verblevel=2
 verbopt="-vSs"
 
-while getopts "j:dH:i:pk:c:a:e:b:v:" options; do
+while getopts "j:dH:i:pk:c:a:e:b:v:l:" options; do
   case "${options}" in                          
     j)
       jsonfn=${OPTARG}
@@ -116,6 +117,12 @@ while getopts "j:dH:i:pk:c:a:e:b:v:" options; do
       ;;
     b)
       jsonbody="${OPTARG}"
+      ;;
+    l)
+      enddate=$(LC_TIME="C" date -u "+%Y-%m-%dT%H:%M:%SZ")
+      startdate=$(LC_TIME="C" date -v -${OPTARG} -u "+%Y-%m-%dT%H:%M:%SZ")
+      daterange="startdate=${startdate}&enddate=${enddate}"
+      echo "$uri" | grep "?" && daterange="&"$daterange || daterange="?"$daterange
       ;;
     v)
       verblevel=${OPTARG}
@@ -153,7 +160,7 @@ passw=$(echo -n "$DATE" | openssl dgst -sha1 -hmac "$API_KEY" -binary | base64)
 #echo $passw
 
 api_curl_cmd="curl ${verbopt} --url
- '${API_SERVER}${uribase}$uri' -X $method --compressed
+ '${API_SERVER}${uribase}$uri$daterange' -X $method --compressed
             -u '$USER:$passw'
 			-H 'Date: $DATE'
 			-H 'Content-Type: application/json'
