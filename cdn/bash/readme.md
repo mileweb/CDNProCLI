@@ -48,6 +48,9 @@ The [json-template](../json-templates) folder within this repository contains so
 # Dependencies
 Effort has been made to minimize any third-party package requirements. The only dependency is to have ```openssl```, ```sed```, and ```grep```available in your bash environment.
 
+# References
+The API document: http://cdn360doc.quantil.com/apidocs/api.html
+
 # Troubleshooting
 
 ### Using control characters in the JSON file
