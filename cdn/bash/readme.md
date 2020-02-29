@@ -9,7 +9,7 @@ The [cdnapi.sh](cdnapi.sh) file contains the main script.
 ```
 git clone https://github.com/mileweb/qtlcli.git
 ```
-2. Create a file  named `SECRET_api_credential.txt` under this directory. Open a text editor and edit the file with the following:
+2. Create a file  named `SECRET_api_credential.txt` under this directory. Open a text editor and put the following content into the file:
 ```
 USER='Your API username'
 API_KEY='You secret API key'
@@ -40,7 +40,10 @@ The [json-template](../json-templates) folder within this repository contains so
 ```bash
 ./cdnapi.sh POST /properties -p -j ../json-templates/property.json -e edgescript.txt
 ```
-
+### Query the bandwidth report of the last 24 hours
+```bash
+./cdnapi.sh POST '/report/bandwidth?type=fiveminutes' -p -l 24H
+```
 
 # Dependencies
 Effort has been made to minimize any third-party package requirements. The only dependency is to have ```openssl```, ```sed```, and ```grep```available in your bash environment.
