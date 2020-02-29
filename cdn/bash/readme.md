@@ -40,7 +40,7 @@ The [json-template](../json-templates) folder within this repository contains so
 ```bash
 ./cdnapi.sh POST /properties -p -j ../json-templates/property.json -e edgescript.txt
 ```
-### Query the bandwidth report of the last 24 hours
+### query the bandwidth report of the last 24 hours
 ```bash
 ./cdnapi.sh POST '/report/bandwidth?type=fiveminutes' -p -l 24H
 ```
