@@ -17,6 +17,7 @@ if [ $# -lt 2 ]; then
     echo "                  -c {certificate file in PEM format}"
     echo "                  -a {CA certificate file in PEM format}"
     echo "                  -l {date range for reports. 2d means the last 2 days}"
+    echo "                  -m {date range of a month. e.g. 2020-01}"
     echo "                  -e {edge logic file}"
     echo "                  -b {json body}"
     echo "Note: You need to put your API username and key in a file named"
@@ -82,7 +83,7 @@ jsonbody=
 verblevel=2
 verbopt="-vSs"
 
-while getopts "j:dH:i:pk:c:a:e:b:v:l:" options; do
+while getopts "j:dH:i:pk:c:a:e:b:v:l:m:" options; do
   case "${options}" in                          
     j)
       jsonfn=${OPTARG}
@@ -121,6 +122,22 @@ while getopts "j:dH:i:pk:c:a:e:b:v:l:" options; do
     l)
       enddate=$(LC_TIME="C" date -u "+%Y-%m-%dT%H:%M:%SZ")
       startdate=$(LC_TIME="C" date -v -${OPTARG} -u "+%Y-%m-%dT%H:%M:%SZ")
+      daterange="startdate=${startdate}&enddate=${enddate}"
+      echo "$uri" | grep "?" && daterange="&"$daterange || daterange="?"$daterange
+      ;;
+    m)
+      month2d=(00 01 02 03 04 05 06 07 08 09 10 11 12)
+      monthdays1=(0 31 28 31 30 31 30 31 31 30 31 30 31)
+      year=${OPTARG%-*}
+      month="${OPTARG#*-}"
+      endday=${monthdays1[${month}]}
+      month=${month2d[${month}]}
+      rem=$(expr ${year} % 4 + 1)
+      if [ "${month}" = 02 -a "${rem}" = 1 ]
+      then endday=29
+      fi
+      startdate="${year}-${month}-01T00:00:00Z"
+      enddate="${year}-${month}-${endday}T23:59:59Z"
       daterange="startdate=${startdate}&enddate=${enddate}"
       echo "$uri" | grep "?" && daterange="&"$daterange || daterange="?"$daterange
       ;;
