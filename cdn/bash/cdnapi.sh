@@ -62,6 +62,7 @@ fi
 appname=$0
 uribase=/cdn
 [[ ${appname} == *adminapi.sh ]] && uribase=/ngadmin
+[[ ${appname} == *roleapi.sh ]] && uribase=/ngrole
 
 while readlink "${appname}" > /dev/null; do
   appname=`readlink "${appname}"`
@@ -83,7 +84,7 @@ jsonbody=
 verblevel=2
 verbopt="-vSs"
 
-while getopts "j:dH:i:pk:c:a:e:b:v:l:m:" options; do
+while getopts "j:dH:i:pk:c:a:e:b:v:l:m:A" options; do
   case "${options}" in                          
     j)
       jsonfn=${OPTARG}
@@ -96,6 +97,9 @@ while getopts "j:dH:i:pk:c:a:e:b:v:l:m:" options; do
       ;;
     H)
       headers+=" -H '${OPTARG}'"
+      ;;
+    A)
+      headers+=" -H 'Report-Range:Self+Children'"
       ;;
     p)
       if node -v > /dev/null; then
