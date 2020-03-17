@@ -12,6 +12,7 @@ if [ $# -lt 2 ]; then
     echo "                  -i {child customer ID to impersonate}"
     echo "                  -H 'headerName: headerValue' # add additional request header"
     echo "                  -p # prettify the json body (works on Mac or with nodejs)"
+    echo "                  -A set header Report-Range:Self+Children"
     echo "                  -v {verbose level 0-4} # >=3 has respose headers in stdout"
     echo "                  -k {private key file in PEM format}"
     echo "                  -c {certificate file in PEM format}"
