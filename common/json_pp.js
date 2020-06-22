@@ -13,7 +13,8 @@ stdin.on('data', function (chunk) {
 });
 
 stdin.on('end', function () {
-    var inputJSON = inputChunks.join('');
+    var inputJSON = inputChunks.join('').trim();
+    if (inputJSON.length == 0) return;
     var rsp = JSON.parse(inputJSON);
 
     console.log(JSON.stringify(rsp,null,2));
