@@ -69,10 +69,14 @@ while readlink "${appname}" > /dev/null; do
   appname=`readlink "${appname}"`
 done
 appdir=$(dirname "${appname}")
-method=$1
-uri=$2
-
-shift 2;
+if [[ $1 == /* ]]; then
+  method=GET
+else
+  method=$1
+  shift 1;
+fi
+uri=$1
+shift 1;
 
 jsonfn=
 privkeyfn=
