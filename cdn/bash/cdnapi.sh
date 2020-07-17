@@ -52,11 +52,11 @@ if [ $# -lt 2 ]; then
     echo "dig staging.qtlgslb.com                          #query the staging server IPs"
     echo "$0 GET /deploymentTasks                          #query deployment task list"
     echo "$0 GET /deploymentTasks/{id}                     #query a deployment task"
-    echo "$0 POST /cnames -j {body}.json                   #create a CNAME"
-    echo "$0 GET /cnames                                   #query CNAME list"
-    echo "$0 GET /cnames/{id}                              #query a CNAME"
-    echo "$0 PUT /cnames/{id}                              #updae a CNAME"
-    echo "$0 DELETE /cnames/{id}                           #delete a CNAME"
+    echo "$0 POST /edgeHostnames -j {body}.json            #create an edge hostname"
+    echo "$0 GET /edgeHostnames                            #query edge hostname list"
+    echo "$0 GET /edgeHostnames/{id}                       #query an edge hostname"
+    echo "$0 PUT /edgeHostnames/{id}                       #updae an edge hostname"
+    echo "$0 DELETE /edgeHostnames/{id}                    #delete an edge hostname"
     exit 0;
 fi
 
