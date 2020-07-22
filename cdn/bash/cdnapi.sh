@@ -12,7 +12,7 @@ if [ $# -lt 2 ]; then
     echo "                  -i {child customer ID to impersonate}"
     echo "                  -H 'headerName: headerValue' # add additional request header"
     echo "                  -p # prettify the json body (works on Mac or with nodejs)"
-    echo "                  -A set header Report-Range:Self+Children"
+    echo "                  -A set header Report-Range:self+children"
     echo "                  -v {verbose level 0-4} # >=3 has respose headers in stdout"
     echo "                  -k {private key file in PEM format}"
     echo "                  -c {certificate file in PEM format}"
@@ -104,7 +104,7 @@ while getopts "j:dH:i:pk:c:a:e:b:v:l:m:A" options; do
       headers+=" -H '${OPTARG}'"
       ;;
     A)
-      headers+=" -H 'Report-Range:Self+Children'"
+      headers+=" -H 'Report-Range:self+children'"
       ;;
     p)
       if node -v > /dev/null; then
