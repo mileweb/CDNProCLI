@@ -17,7 +17,7 @@ if [ $# -lt 2 ]; then
     echo "                  -k {private key file in PEM format}"
     echo "                  -c {certificate file in PEM format}"
     echo "                  -a {CA certificate file in PEM format}"
-    echo "                  -l {date range for reports. 2d means the last 2 days}"
+    echo "                  -l {date range by ymwdHMS: 2d means the last 2 days.}"
     echo "                  -m {date range of a month or a day. e.g. 2020-01, 2020-02-01}"
     echo "                  -e {edge logic file}"
     echo "                  -b {json body}"
