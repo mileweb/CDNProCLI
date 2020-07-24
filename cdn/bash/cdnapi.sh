@@ -49,7 +49,6 @@ if [ $# -lt 2 ]; then
     echo "$0 GET /validations                              #query validation task list"
     echo "$0 GET /validations/{id}                         #query one validation task"
     echo "$0 POST /deploymentTasks -j {body}.json          #create a deployment task"
-    echo "dig staging.qtlgslb.com                          #query the staging server IPs"
     echo "$0 GET /deploymentTasks                          #query deployment task list"
     echo "$0 GET /deploymentTasks/{id}                     #query a deployment task"
     echo "$0 POST /edgeHostnames -j {body}.json            #create an edge hostname"
@@ -57,6 +56,7 @@ if [ $# -lt 2 ]; then
     echo "$0 GET /edgeHostnames/{id}                       #query an edge hostname"
     echo "$0 PUT /edgeHostnames/{id}                       #updae an edge hostname"
     echo "$0 DELETE /edgeHostnames/{id}                    #delete an edge hostname"
+    echo "dig staging.qtlgslb.com                          #query the staging server IPs"
     exit 0;
 fi
 
