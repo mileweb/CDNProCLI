@@ -44,6 +44,13 @@ The [json-template](../json-templates) folder within this repository contains so
 ```bash
 ./cdnapi.sh POST '/report/bandwidth?type=fiveminutes' -p -l 24H
 ```
+### perform a purge of 2 files
+```bash
+./cdnapi.sh POST /purges -p -b '{
+"fileUrls":["https://www.quantil.com/abc.jpg","http://www.quantil.com/def.css"],
+"action":"invalidate",
+"target":"production"}'
+```
 
 # Dependencies
 Effort has been made to minimize any third-party package requirements. The only dependency is to have ```openssl```, ```sed```, and ```grep```available in your bash environment.
