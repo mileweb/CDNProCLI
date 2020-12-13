@@ -17,7 +17,7 @@ API_KEY='You secret API key'
 3. For the API calls that need to send data to the server, create the request body using one of the following methods:
     * Prepare the request body in a JSON file, and pass the file name after the ```-j``` switch, or
     * Use the ```-b``` switch and put the body content after it.
-4. For the property creation and update API calls, use the ```-e``` switch to pass the [Edge Logic](https://docs.google.com/document/d/119Lpq__vF8di1y2-A8ANeUsmyiw-T8ppp5J745oCrWk/edit?usp=sharing) file to the main script. The script looks for ```"serverScript" : _EDGE_LOGIC_``` in the JSON file and replaces ```_EDGE_LOGIC_``` with the escaped Edge Logic code.
+4. For the property creation and update API calls, use the ```-e``` switch to pass the [Edge Logic](https://docs.quantil.com/cdn/docs/edge-logic/intro) file to the main script. The script looks for ```"serverScript" : _EDGE_LOGIC_``` in the JSON file and replaces ```_EDGE_LOGIC_``` with the escaped Edge Logic code.
 5. For the certificate creation and update API calls, use the ```-k```, ```-c```, ```-a``` switches to pass the private key, certificate, and CA certificate files respectively to the main script. The script looks for ```"privateKey": _PRIVATE_KEY_``` , ```"certificate": _CERTIFICATE_``` , and ```"chainCert": _CA_CERTIFICATE_``` in the JSON file and replaces them with the corresponding escaped certificate files.
 
 The [json-template](../json-templates) folder within this repository contains some sample JSON template files that you can use for creating and updating a property or certificate.
@@ -44,12 +44,19 @@ The [json-template](../json-templates) folder within this repository contains so
 ```bash
 ./cdnapi.sh POST '/report/bandwidth?type=fiveminutes' -p -l 24H
 ```
+### perform a purge of 2 files
+```bash
+./cdnapi.sh POST /purges -p -b '{
+"fileUrls":["https://www.quantil.com/abc.jpg","http://www.quantil.com/def.css"],
+"action":"invalidate",
+"target":"production"}'
+```
 
 # Dependencies
 Effort has been made to minimize any third-party package requirements. The only dependency is to have ```openssl```, ```sed```, and ```grep```available in your bash environment.
 
 # References
-The API document: http://cdn360doc.quantil.com/apidocs/api.html
+The API document: https://docs.quantil.com/cdn/apidocs
 
 # Troubleshooting
 
