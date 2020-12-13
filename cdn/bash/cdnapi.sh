@@ -189,7 +189,7 @@ else
   source $appdir/SECRET_api_credential.txt
 fi
 
-DATE=`LC_TIME="C" date -u "+%a, %d %b %Y %H:%M:%S GMT"`
+DATE=`LC_TIME="C" date -u "+%a, %d %b %Y %H:%M:%S %z"`
 #echo $DATE
 # Generate authentication info
 passw=$(echo -n "$DATE" | openssl dgst -sha1 -hmac "$API_KEY" -binary | base64)
