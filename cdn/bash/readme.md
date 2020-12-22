@@ -1,6 +1,6 @@
 # Overview
 
-This document describes the bash CLI toolset for managing the CDNetworks/QUANTIL's CDN360 service.
+This document describes the bash CLI toolset for managing the CDNetworks/QUANTIL's [CDN360 service](https://www.cdnetworks.com/cdn360/).
 
 The [cdnapi.sh](cdnapi.sh) file contains the main script.
 
