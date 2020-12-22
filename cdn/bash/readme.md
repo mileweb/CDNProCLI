@@ -19,7 +19,7 @@ API_KEY='You secret API key'
     * Use the ```-b``` switch and put the body content after it.
 4. For the property creation and update API calls, use the ```-e``` switch to pass the [Edge Logic](https://docs.quantil.com/cdn/docs/edge-logic/intro) file to the main script. The script looks for ```"serverScript" : _EDGE_LOGIC_``` in the JSON file and replaces ```_EDGE_LOGIC_``` with the escaped Edge Logic code.
 5. For the certificate creation and update API calls, use the ```-k```, ```-c```, ```-a``` switches to pass the private key, certificate, and CA certificate files respectively to the main script. The script looks for ```"privateKey": _PRIVATE_KEY_``` , ```"certificate": _CERTIFICATE_``` , and ```"chainCert": _CA_CERTIFICATE_``` in the JSON file and replaces them with the corresponding escaped certificate files.
-6. This tool invokes cURL under the hood and it by default displayes the complete cURL command that you can refer to to create your own code to call the API.
+6. This tool invokes cURL under the hood and it by default displays the complete cURL command that you can refer to to create your own code to call the API.
 
 The [json-template](../json-templates) folder within this repository contains some sample JSON template files that you can use for creating and updating a property or certificate.
 
