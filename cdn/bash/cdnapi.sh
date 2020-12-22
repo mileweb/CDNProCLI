@@ -108,9 +108,9 @@ while getopts "j:dH:i:pk:c:a:e:b:v:l:m:A" options; do
       ;;
     p)
       if node -v > /dev/null; then
-        jsonpp="|grep ^{\\\"|node \"${appdir}/../../common/json_pp.js\""
+        jsonpp='|grep ^[[{]|node "'${appdir}'/../../common/json_pp.js"'
       elif json_pp -V > /dev/null; then
-        jsonpp='|grep ^{\"|json_pp'
+        jsonpp='|grep ^[[{]|json_pp'
       fi
       ;;
     k)
@@ -236,7 +236,7 @@ if [ "$method" = "POST" -o "$method" = "PUT" -o "$method" = "PATCH" ]; then
   fi
 fi
 
-[ $verblevel = 0 ]||echo $api_curl_cmd >& 2
+[ $verblevel = 0 ]||echo $api_curl_cmd $jsonpp>& 2
 #exit  #for testing
 eval $api_curl_cmd $jsonpp
 echo " "
