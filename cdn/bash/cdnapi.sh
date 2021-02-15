@@ -178,7 +178,7 @@ while getopts "j:dH:i:pk:c:a:e:b:v:l:m:A" options; do
   esac
 done
 
-API_SERVER=https://ngapi.quantil.com
+API_SERVER_NAME=ngapi.quantil.com
 
 #This file should contain the definition of two variables:
 #USER='Your API username'
@@ -188,7 +188,9 @@ if [ -f ./SECRET_api_credential.txt ]; then
 else
   source $appdir/SECRET_api_credential.txt
 fi
-
+if [ $API_SERVER_IP ]; then
+  resolve="-k --resolve $API_SERVER_NAME:443:$API_SERVER_IP"
+fi
 DATE=`LC_TIME="C" date -u "+%a, %d %b %Y %H:%M:%S GMT"`
 #echo $DATE
 # Generate authentication info
@@ -196,12 +198,13 @@ passw=$(echo -n "$DATE" | openssl dgst -sha1 -hmac "$API_KEY" -binary | base64)
 #echo $passw
 
 api_curl_cmd="curl ${verbopt} --url
- '${API_SERVER}${uribase}$uri$daterange' -X $method --compressed
+ 'https://${API_SERVER_NAME}${uribase}$uri$daterange' -X $method --compressed
             -u '$USER:$passw'
 			-H 'Date: $DATE'
 			-H 'Content-Type: application/json'
 			-H 'Accept: application/json'
 			$headers
+			$resolve
 "
 tempfn=
 if [ "$method" = "POST" -o "$method" = "PUT" -o "$method" = "PATCH" ]; then
