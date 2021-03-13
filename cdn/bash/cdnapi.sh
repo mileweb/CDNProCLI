@@ -12,7 +12,7 @@ if [ $# -lt 2 ]; then
     echo "                  -i {child customer ID to impersonate}"
     echo "                  -H 'headerName: headerValue' # add additional request header"
     echo "                  -p # prettify the json body (works on Mac or with nodejs)"
-    echo "                  -A set header Report-Range:self+children"
+    echo "                  -A # set header Report-Range:self+children"
     echo "                  -v {verbose level 0-4} # >=3 has respose headers in stdout"
     echo "                  -k {private key file in PEM format}"
     echo "                  -c {certificate file in PEM format}"
@@ -21,6 +21,7 @@ if [ $# -lt 2 ]; then
     echo "                  -m {date range of a month or a day. e.g. 2020-01, 2020-02-01}"
     echo "                  -e {edge logic file}"
     echo "                  -b {json body}"
+    echo "                  -r # refresh the cached response"
     echo "Note: You need to put your API username and key in a file named"
     echo "SECRET_api_credential.txt under the same directory."
     echo ""
@@ -89,7 +90,7 @@ jsonbody=
 verblevel=2
 verbopt="-vSs"
 
-while getopts "j:dH:i:pk:c:a:e:b:v:l:m:A" options; do
+while getopts "j:dH:i:pk:c:a:e:b:v:l:m:Ar" options; do
   case "${options}" in                          
     j)
       jsonfn=${OPTARG}
@@ -105,6 +106,9 @@ while getopts "j:dH:i:pk:c:a:e:b:v:l:m:A" options; do
       ;;
     A)
       headers+=" -H 'Report-Range:self+children'"
+      ;;
+    r)
+      headers+=" -H 'cache-control:no-cache'"
       ;;
     p)
       if node -v > /dev/null; then
