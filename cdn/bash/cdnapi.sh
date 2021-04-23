@@ -134,7 +134,37 @@ while getopts "j:dH:i:pk:c:a:e:b:v:l:m:Ar" options; do
       ;;
     l)
       enddate=$(LC_TIME="C" date -u "+%Y-%m-%dT%H:%M:%SZ")
-      startdate=$(LC_TIME="C" date -v -${OPTARG} -u "+%Y-%m-%dT%H:%M:%SZ")
+      if [ $(uname) = 'Linux' ]; then
+        case "${OPTARG}" in
+          *y)   #year
+            st=${OPTARG}ear
+            ;;
+          *m)  #month
+            st=${OPTARG}onth
+            ;;
+          *w)  #week
+            st=${OPTARG}eek
+            ;;
+          *d)  #day
+            st=${OPTARG}ay
+            ;;
+          *H)  #Hour
+            st=${OPTARG}our
+            ;;
+          *M)  #Minute
+            st=${OPTARG}inute
+            ;;
+          *S)  #Second
+            st=${OPTARG}econd
+            ;;
+          *)
+            st=${OPTARG}
+            ;;
+        esac
+        startdate=$(LC_TIME="C" date -d -${st} -u "+%Y-%m-%dT%H:%M:%SZ")
+      else
+        startdate=$(LC_TIME="C" date -v -${OPTARG} -u "+%Y-%m-%dT%H:%M:%SZ")
+      fi
       daterange="startdate=${startdate}&enddate=${enddate}"
       echo "$uri" | grep "?" && daterange="&"$daterange || daterange="?"$daterange
       ;;
