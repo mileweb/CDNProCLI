@@ -9,7 +9,7 @@ The [cdnapi.sh](cdnapi.sh) file contains the main script.
 ```
 git clone https://github.com/mileweb/qtlcli.git
 ```
-2. Create a file  named `SECRET_api_credential.txt` under this directory. Open a text editor and put the following content into the file:
+2. Create a file  named `SECRET_api_credential.txt` under the project directory. Open a text editor and put the following content into the file:
 ```
 USER='Your API username'
 API_KEY='You secret API key'
