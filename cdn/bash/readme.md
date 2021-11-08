@@ -2,7 +2,7 @@
 
 This document describes the bash CLI toolset for managing the CDNetworks/QUANTIL's [CDN Pro service](https://www.cdnetworks.com/cdn360/).
 
-The [cdnapi.sh](cdnapi.sh) file contains the main script.
+The [cdnapi.sh](cdnapi.sh) file contains the main script. There is a symbolic link [adminapi.sh](adminapi.sh) which can be used by resellers to call the admin API to manage various accounts for their customers.
 
 # Instructions
 1. Clone the latest files using the following command:
@@ -61,6 +61,20 @@ The [json-template](../json-templates) folder within this repository contains so
 {"action":"deploy_property", "certificateId":"1234abcd","version":"3"},
 {"action":"deploy_cert", "certificateId":"def1234","version":"4"}
 ]}'
+```
+### Create a new API account for customer 123
+```bash
+./adminapi.sh POST /apiAccounts -i 123 -p -b '{
+"responsiblePerson": "John Doe",
+"apiName": "jdoe-api",
+"emailAddress": "john.doe@company.com",
+"products": ["CDN", "ECP"],
+"type": "read-only"
+}'
+```
+### Reset the password of the apiAccount 4 of customer 123
+```bash
+./adminapi.sh PATCH /apiAccounts/4 -i 123 -p -b '{"apiKey": "reset";}'
 ```
 
 # Dependencies
