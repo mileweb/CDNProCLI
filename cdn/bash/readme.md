@@ -62,7 +62,7 @@ The [json-template](../json-templates) folder within this repository contains so
 {"action":"deploy_cert", "certificateId":"def1234","version":"4"}
 ]}'
 ```
-### Create a new API account for customer 123
+### (Reseller-Only) Create a new API account for customer 123
 ```bash
 ./adminapi.sh POST /apiAccounts -i 123 -p -b '{
 "responsiblePerson": "John Doe",
@@ -72,7 +72,7 @@ The [json-template](../json-templates) folder within this repository contains so
 "type": "read-only"
 }'
 ```
-### Reset the password of the apiAccount 4 of customer 123
+### (Reseller-Only) Reset the password of API account 4 of customer 123
 ```bash
 ./adminapi.sh PATCH /apiAccounts/4 -i 123 -p -b '{"apiKey": "reset";}'
 ```
