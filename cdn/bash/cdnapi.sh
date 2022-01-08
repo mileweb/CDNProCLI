@@ -177,13 +177,14 @@ while getopts "j:dH:i:pk:c:a:e:b:v:l:m:Ar" options; do
         day="${month#*-}"
         month=${month%-*}
       fi
-      month=${month2d[${month}]}
+      monthn=${month#0}
+      month=${month2d[${monthn}]}
       if [ ${day} ]; then
         startday=${day}
         endday=${day}
       else
         startday=01
-        endday=${monthdays1[${month}]}
+        endday=${monthdays1[${monthn}]}
         rem=$(expr ${year} % 4 + 1)
         if [ "${month}" = 02 -a "${rem}" = 1 ]
         then endday=29
