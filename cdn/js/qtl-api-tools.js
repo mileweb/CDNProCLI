@@ -93,7 +93,7 @@ const callServer = function(options, proc) {
             if (options.quiet !== true) {
                 const headerSec = (hdrTime - stime)/1000;
                 const totalSec = (resTime - stime)/1000;
-                console.log(`hdrTime ${headerSec}s, total ${totalSec}s, got ${len} => ${data.length} bytes from `+ options.host+options.path);
+                console.log(`hdrTime ${headerSec}s, total ${totalSec}s, got status ${res.statusCode} w/ ${len} => ${data.length} bytes from `+ options.host+options.path);
             }
             let ct = res.headers['content-type'] || '';
             if (ct.indexOf('application/json') > -1) {
