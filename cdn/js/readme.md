@@ -13,7 +13,7 @@ git clone https://github.com/mileweb/qtlcli.git
 ```
 cd qtlcli/cdn/js
 npm install node-forge xml2js
-``
+```
 3. Create a file  named `SECRET_api_credential.json` under the project directory. Open a text editor and put the following content into the file:
 ```
 {
