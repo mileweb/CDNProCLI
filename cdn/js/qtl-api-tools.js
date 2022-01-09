@@ -118,5 +118,5 @@ const callServer = function(options, proc) {
     });
 }
 
-exports.buildCncAuth = buildCncAuth;
+exports.buildAuth = buildCncAuth;
 exports.callServer = callServer; 
