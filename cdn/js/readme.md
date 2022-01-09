@@ -31,6 +31,7 @@ npm install node-forge xml2js
 
 # Dependencies
 ## node.js
+Installation instructions: https://nodejs.dev/learn/how-to-install-nodejs
 ## node package manager (npm)
 
 # References
