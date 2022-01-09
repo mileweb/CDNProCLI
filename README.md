@@ -1,5 +1,5 @@
 ## Overview
-This repository provides some command line and scripting tools to provision [Quantil](www.quantil.com) CDN Pro (a.k.a CDN360) services.
+This repository provides some command line and scripting tools to provision [Quantil](https://www.quantil.com) CDN Pro (a.k.a CDN360) services.
 
 Currently, only the bash and javascript versions are available. Please visit the [bash CLI for CDN](cdn/bash/) or
 [Javascript library](cdn/js/) pages for further information.
