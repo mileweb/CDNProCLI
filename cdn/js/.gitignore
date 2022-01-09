@@ -1,0 +1,6 @@
+credentials.json
+credentials.js
+SECRET_*
+
+#node modules
+node_modules/
