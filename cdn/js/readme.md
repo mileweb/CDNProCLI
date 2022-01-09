@@ -14,15 +14,17 @@ git clone https://github.com/mileweb/qtlcli.git
 cd qtlcli/cdn/js
 npm install node-forge xml2js
 ```
-3. Create a file  named `SECRET_api_credential.json` under the project directory. Open a text editor and put the following content into the file:
+3. Create a file to include the API credentials, for exmaple `SECRET_credential.js`. Open a text editor and put the following content into the file:
 ```
-{
+const cred = {
   "ngServer" : { 
     "host" : "ngapi.quantil.com",
     "user" : "{API USER NAME}",
     "secretKey" : "{SECRET API KEY}"
   }
 }
+
+exports.cred = cred;
 ```
 4. TO BE FINISHED
 
