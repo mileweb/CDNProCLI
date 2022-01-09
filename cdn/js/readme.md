@@ -15,7 +15,7 @@ cd qtlcli/cdn/js
 npm install node-forge xml2js
 ```
 3. Create a file to include the API credentials, for exmaple `SECRET_credential.js`. Open a text editor and put the following content into the file:
-```
+```Javascript
 const cred = {
   "ngServer" : { 
     "host" : "ngapi.quantil.com",
@@ -23,13 +23,15 @@ const cred = {
     "secretKey" : "{SECRET API KEY}"
   }
 }
-
 exports.cred = cred;
 ```
-4. TO BE FINISHED
+4. Try the following command to see a list of properties on CDN Pro:
+```Shell
+node ./cdnapi.js
+```
 
 # Examples
-
+You can study the example file [cdnapi.js](cdnapi.js) to learn the usage of of the library.
 
 # Dependencies
 ## node.js
