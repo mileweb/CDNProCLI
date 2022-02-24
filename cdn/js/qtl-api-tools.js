@@ -52,7 +52,8 @@ const callServer = function(options, proc) {
         ctx.remoteAddress = res.connection.remoteAddress;
         if (res.statusCode !== 200 && res.statusCode !== 201 && options.abortOnError) {
             console.error(`Did not get an OK from the server, aborting. Code: ${res.statusCode}`);
-            console.error(options.path);
+            console.error('path='+options.path);
+            console.error('Headers', res.headers);
             res.resume();
             return;
         }
