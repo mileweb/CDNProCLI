@@ -9,7 +9,7 @@ The [qtl-api-tools.js](qtl-api-tools.js) file contains the help functions to gen
 ```
 git clone https://github.com/mileweb/qtlcli.git
 ```
-2. go to the js directory and install the 2 required packages:
+2. go to the js directory and install the required package xml2js:
 ```
 cd qtlcli/cdn/js
 npm install xml2js
