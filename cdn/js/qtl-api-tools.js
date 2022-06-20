@@ -1,20 +1,18 @@
 const https = require('https');
 const http = require('http');
-const forge = require('node-forge');
 const fs = require('fs');
 const zlib = require('zlib');
 const xml2js = require('xml2js');
+const crypto = require('crypto');
 var xmlParser = new xml2js.Parser();
 
 const buildCncAuth = function(serverInfo) {
     const now = new Date();
     const dateStr = now.toUTCString();
-    const hmac = forge.hmac.create();
-    hmac.start('sha1', serverInfo.secretKey);
+    const hmac = crypto.createHmac('sha1', serverInfo.secretKey);
     hmac.update(dateStr);
-    const d = hmac.digest();
-    const b64passwd = forge.util.encode64(d.data);
-    const authData = forge.util.encode64(serverInfo.user+':'+b64passwd);
+    const b64passwd = hmac.digest('base64');
+    const authData = Buffer.from(serverInfo.user+':'+b64passwd).toString('base64');
 
     return {
       host: serverInfo.host,
@@ -25,7 +23,7 @@ const buildCncAuth = function(serverInfo) {
         'Date': dateStr,
         'Accept-Encoding': 'gzip'
       },
-      abortOnError: true
+      abortOnError: true  //abort if status code is not 200 or 201
     };
 }
 
