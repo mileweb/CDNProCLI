@@ -48,12 +48,17 @@ const callServer = function(options, proc) {
         ctx._res = res;
         ctx.times.header = hdrTime;
         ctx.remoteAddress = res.connection.remoteAddress;
-        if (res.statusCode !== 200 && res.statusCode !== 201 && options.abortOnError) {
-            console.error(`Did not get an OK from the server, aborting. Code: ${res.statusCode}`);
-            console.error('path='+options.path);
-            console.error('Headers', res.headers);
-            res.resume();
-            return;
+        if (res.statusCode !== 200 && res.statusCode !== 201) {
+            if (options.quiet !== true) {
+                console.error(`Did not get an OK from the server, Code: ${res.statusCode}`);
+                console.error('path='+options.path);
+                console.error('Headers', res.headers);
+            }
+            if (options.abortOnError) {
+                console.log('Aborting ...');
+                res.resume();
+                return;
+            }
         }
         let uncomp = null;
         let ce = res.headers['content-encoding'];
