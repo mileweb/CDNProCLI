@@ -51,7 +51,7 @@ const callServer = function(options, proc) {
         if (res.statusCode !== 200 && res.statusCode !== 201) {
             if (options.quiet !== true) {
                 console.error(`Did not get an OK from the server, Code: ${res.statusCode}`);
-                console.error('path='+options.path);
+                console.error(`${options.method} ${options.host}${options.path}`);
                 console.error('Headers', res.headers);
             }
             if (options.abortOnError) {
