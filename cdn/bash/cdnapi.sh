@@ -231,7 +231,7 @@ DATE=`LC_TIME="C" date -u "+%a, %d %b %Y %H:%M:%S GMT"`
 # Generate authentication info
 passw=$(echo -n "$DATE" | openssl dgst -sha1 -hmac "$API_KEY" -binary | base64)
 #echo $passw
-
+[[ $uri == /auth ]] && uribase=
 api_curl_cmd="curl ${verbopt} --url
  'https://${API_SERVER_NAME}${uribase}$uri$daterange' -X $method --compressed
             -u '$USER:$passw'

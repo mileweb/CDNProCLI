@@ -48,6 +48,10 @@ const callServer = function(options, proc) {
         ctx._res = res;
         ctx.times.header = hdrTime;
         ctx.remoteAddress = res.connection.remoteAddress;
+        res.connection.peerCertificate = res.connection.getPeerCertificate();
+        if (options.debug) {
+            console.log(stringify(res));
+        }
         if (res.statusCode !== 200 && res.statusCode !== 201) {
             if (options.quiet !== true) {
                 console.error(`Did not get an OK from the server, Code: ${res.statusCode}`);
@@ -121,6 +125,31 @@ const callServer = function(options, proc) {
         }
     });
 }
+
+var stringify = function(obj) {
+    return JSON.stringify(replaceCircular6(obj), null, 2);
+};
+
+var replaceCircular6 = function(val, cache) {
+
+    cache = cache || new WeakSet();
+
+    if (val && typeof(val) == 'object') {
+        if (cache.has(val)) return '[Circular]';
+
+        cache.add(val);
+
+        var obj = (Array.isArray(val) ? [] : {});
+        for(var idx in val) {
+            obj[idx] = replaceCircular6(val[idx], cache);
+        }
+
+        cache.delete(val);
+        return obj;
+    }
+
+    return val;
+};
 
 exports.buildAuth = buildCncAuth;
 exports.callServer = callServer; 
