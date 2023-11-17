@@ -23,6 +23,7 @@ const buildCncAuth = function(serverInfo) {
         'Date': dateStr,
         'Accept-Encoding': 'gzip'
       },
+      timeout: 10000, //socket connection times out in 10 seconds
       abortOnError: true  //abort if status code is not 200 or 201
     };
 }
@@ -31,7 +32,7 @@ const callServer = function(options, proc) {
     const stime = Date.now();
     const body = options.reqBody;
     if (options.headers === undefined) options.headers = {};
-    if (body) options.headers['Content-Length']=`${body.length}`;
+    if (body) options.headers['Content-Length']=`${Buffer.byteLength(body)}`;
     const ctx = options.ctx||{};
     ctx.options = options;
     ctx.times = {start:stime};
@@ -56,7 +57,8 @@ const callServer = function(options, proc) {
             if (options.quiet !== true) {
                 console.error(`Did not get an OK from the server, Code: ${res.statusCode}`);
                 console.error(`${options.method} ${options.host}${options.path}`);
-                console.error('Headers', res.headers);
+                console.error('Response Headers', res.headers);
+                console.error('Request Headers', options.headers);
             }
             if (options.abortOnError) {
                 console.log('Aborting ...');
@@ -112,9 +114,6 @@ const callServer = function(options, proc) {
         }
     });
 
-    if (body) request.write(body); //for POST
-    request.end();
-
     request.on('error', (err) => {
         console.error(`Encountered an error trying to make a request: ${err.message}`);
         if (options.abortOnError !== true) {
@@ -124,6 +123,19 @@ const callServer = function(options, proc) {
             proc(null, ctx);
         }
     });
+
+    request.setTimeout(30000, () => {
+        console.error(`Request timed out after 30 seconds.`);
+        if (options.abortOnError !== true) {
+            const resTime = Date.now();
+            ctx.times.finish = resTime;
+            ctx.err = new Error('Request timed out after 30 seconds.');
+            proc(null, ctx);
+        }
+    });
+
+    if (body) request.write(body); //for POST
+    request.end();
 }
 
 var stringify = function(obj) {
