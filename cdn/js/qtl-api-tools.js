@@ -115,17 +115,17 @@ const callServer = function(options, proc) {
     });
 
     request.on('error', (err) => {
-        console.error(`Encountered an error trying to make a request: ${err.message}`);
+        console.error('Request to '+options.host+options.path+` got error:\n${err.message}`);
         if (options.abortOnError !== true) {
             const resTime = Date.now();
             ctx.times.finish = resTime;
-            ctx.err = err;
+            ctx.err = err; //in case of error, ctx.err is set
             proc(null, ctx);
         }
     });
 
     request.setTimeout(30000, () => {
-        console.error(`Request timed out after 30 seconds.`);
+        console.error('Request to '+options.host+options.path+' timed out after 30 seconds.`);
         if (options.abortOnError !== true) {
             const resTime = Date.now();
             ctx.times.finish = resTime;
