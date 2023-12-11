@@ -125,7 +125,7 @@ const callServer = function(options, proc) {
     });
 
     request.setTimeout(30000, () => {
-        console.error('Request to '+options.host+options.path+' timed out after 30 seconds.`);
+        console.error('Request to '+options.host+options.path+' timed out after 30 seconds.');
         if (options.abortOnError !== true) {
             const resTime = Date.now();
             ctx.times.finish = resTime;
