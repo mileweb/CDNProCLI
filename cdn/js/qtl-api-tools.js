@@ -40,11 +40,14 @@ const callServer = function(options, proc) {
     let scheme = https;
     if (options.scheme === 'http') scheme = http;
 
+    // to override DNS to always resolve to a certain IP address:
+    // agentOptions:{lookup:(h,o,c)=>{c(null,'58.220.72.220',4);}}
     if (options.agentOptions) {
         options.agent = new scheme.Agent(options.agentOptions);
     }
 
     let request = scheme.request(options, (res) => {
+        //this is the callback function when the response header is received.
         const hdrTime = Date.now();
         ctx._res = res;
         ctx.times.header = hdrTime;
