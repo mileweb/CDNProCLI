@@ -42,6 +42,8 @@ const callServer = function(options, proc) {
 
     // to override DNS to always resolve to a certain IP address:
     // agentOptions:{lookup:(h,o,c)=>{c(null,'58.220.72.220',4);}}
+    // to override DNS to always resolve to a another hostname:
+    // agentOptions:{lookup:(h,o,c)=>{dns.lookup('other.hostname.com',o,c);}}
     if (options.agentOptions) {
         options.agent = new scheme.Agent(options.agentOptions);
     }
