@@ -17,7 +17,7 @@ npm install xml2js
 3. Create a file to include the API credentials, for exmaple `SECRET_credential.js`. Open a text editor and put the following content into the file:
 ```Javascript
 const cred = {
-  "ngServer" : { 
+  "cdnPro" : { 
     "host" : "ngapi.quantil.com",
     "user" : "{API USER NAME}",
     "secretKey" : "{SECRET API KEY}"
