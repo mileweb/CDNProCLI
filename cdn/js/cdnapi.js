@@ -2,7 +2,7 @@ const { buildAuth, callServer } = require('./qtl-api-tools');
 const { cred } = require('./SECRET_credentials');
 
 function listProperties({limit = 5, range = 'self+children', target = 'production'}) {
-    let ngOptions = buildAuth(cred.ngServer); //build the auth header from credential
+    let ngOptions = buildAuth(cred.cdnPro); //build the auth header from credential
     // fill in the details of the API endpoint
     ngOptions.path = `/cdn/properties?target=${target}&limit=${limit}`;
     ngOptions.headers['Report-Range']=range;
