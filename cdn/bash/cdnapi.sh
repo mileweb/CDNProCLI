@@ -213,7 +213,7 @@ while getopts "j:dH:i:pk:c:a:e:b:v:l:m:Ar" options; do
   esac
 done
 
-API_SERVER_NAME=ngapi.quantil.com
+API_SERVER_NAME=ngapi.cdnetworks.com
 
 #This file should contain the definition of two variables:
 #USER='Your API username'

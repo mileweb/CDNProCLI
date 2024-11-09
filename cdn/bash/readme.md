@@ -1,6 +1,6 @@
 # Overview
 
-This document describes the bash CLI toolset for managing the CDNetworks/QUANTIL's [CDN Pro service](https://www.cdnetworks.com/cdn360/).
+This document describes the bash CLI toolset for managing the CDNetworks [CDN Pro service](https://www.cdnetworks.com/cdnpro/).
 
 The [cdnapi.sh](cdnapi.sh) file contains the main script. There is a symbolic link [adminapi.sh](adminapi.sh) which can be used by resellers to call the admin API to manage various accounts for their customers.
 
@@ -17,7 +17,7 @@ API_KEY='You secret API key'
 3. For the API calls (POST, PATCH, PUT) that need to send data to the server, create the request body using one of the following methods:
     * Prepare the request body in a JSON file, and pass the file name after the ```-j``` switch, or
     * Use the ```-b``` switch and put the body content after it.
-4. For the property creation and update API calls, use the ```-e``` switch to pass the [Edge Logic](https://docs.quantil.com/cdn/docs/edge-logic/intro) file to the main script. The script looks for ```"edgeLogic" : _EDGE_LOGIC_``` in the JSON file and replaces ```_EDGE_LOGIC_``` with the escaped Edge Logic code.
+4. For the property creation and update API calls, use the ```-e``` switch to pass the [Edge Logic](https://docs.cdnetworks.com/cdn/docs/edge-logic/intro) file to the main script. The script looks for ```"edgeLogic" : _EDGE_LOGIC_``` in the JSON file and replaces ```_EDGE_LOGIC_``` with the escaped Edge Logic code.
 5. For the certificate creation and update API calls, use the ```-k```, ```-c```, ```-a``` switches to pass the private key, certificate, and CA certificate files respectively to the main script. The script looks for ```"privateKey": _PRIVATE_KEY_``` , ```"certificate": _CERTIFICATE_``` , and ```"chainCert": _CA_CERTIFICATE_``` in the JSON file and replaces them with the corresponding escaped certificate files.
 6. This tool invokes cURL under the hood and it by default displays the complete cURL command that you can refer to to create your own code to call the API.
 
@@ -81,7 +81,7 @@ The [json-template](../json-templates) folder within this repository contains so
 Effort has been made to minimize any third-party package requirements. The only dependency is to have ```openssl```, ```sed```, and ```grep```available in your bash environment.
 
 # References
-The API document: https://docs.quantil.com/cdn/apidocs
+The API document: https://docs.cdnetworks.com/cdn/apidocs
 
 # Troubleshooting
 

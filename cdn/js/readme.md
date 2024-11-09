@@ -1,6 +1,6 @@
 # Overview
 
-This document describes the JavaScript library for managing the CDNetworks/QUANTIL's [CDN Pro service](https://www.cdnetworks.com/cdn360/).
+This document describes the JavaScript library for managing the CDNetworks [CDN Pro service](https://www.cdnetworks.com/cdnpro/).
 
 The [qtl-api-tools.js](qtl-api-tools.js) file contains the help functions to generate the dynamic password, facilitate the HTTPS request and parse the response.
 
@@ -18,7 +18,7 @@ npm install xml2js
 ```Javascript
 const cred = {
   "cdnPro" : { 
-    "host" : "ngapi.quantil.com",
+    "host" : "ngapi.cdnetworks.com",
     "user" : "{API USER NAME}",
     "secretKey" : "{SECRET API KEY}"
   }
@@ -39,6 +39,6 @@ Installation instructions: https://nodejs.dev/learn/how-to-install-nodejs
 ## node package manager (npm)
 
 # References
-The API document: https://docs.quantil.com/cdn/apidocs
+The API document: https://docs.cdnetworks.com/cdn/apidocs
 
 # Troubleshooting
