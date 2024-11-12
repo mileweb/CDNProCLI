@@ -43,7 +43,7 @@ The [json-template](../json-templates) folder within this repository contains so
 ```
 ### query the bandwidth report of the last 24 hours
 ```bash
-./cdnapi.sh POST '/report/bandwidth?type=fiveminutes' -p -l 24H
+./cdnapi.sh POST '/report/bandwidth?type=fiveminutes' -p -l 24H -j body.json
 ```
 ### perform a purge of 2 files
 ```bash
