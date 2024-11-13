@@ -43,7 +43,7 @@ The [json-template](../json-templates) folder within this repository contains so
 ```
 ### query the bandwidth report of the last 24 hours
 ```bash
-./cdnapi.sh POST '/report/bandwidth?type=fiveminutes' -p -l 24H
+./cdnapi.sh POST '/report/bandwidth?type=fiveminutes' -p -l 24H -j body.json
 ```
 ### perform a purge of 2 files
 ```bash
@@ -58,7 +58,7 @@ The [json-template](../json-templates) folder within this repository contains so
 "name":"deploy property 1234abcd v3 and cert def1234 v4 to staging",
 "target":"staging",
 "actions":[
-{"action":"deploy_property", "certificateId":"1234abcd","version":"3"},
+{"action":"deploy_property", "propertyId":"1234abcd","version":"3"},
 {"action":"deploy_cert", "certificateId":"def1234","version":"4"}
 ]}'
 ```
