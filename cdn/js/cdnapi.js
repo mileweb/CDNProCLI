@@ -3,7 +3,7 @@ const { cred } = require('./SECRET_credentials');
 
 function listProperties({limit = 5, range = 'self+children', target = 'production'}) {
     //build the options, including the auth header from credential
-    let ngOptions = buildAuth(cred.cdnPro);
+    const ngOptions = buildAuth(cred.cdnPro);
     // fill in the details of the API endpoint
     ngOptions.path = `/cdn/properties?target=${target}&limit=${limit}`;
     ngOptions.headers['Report-Range']=range;
@@ -20,17 +20,40 @@ function listProperties({limit = 5, range = 'self+children', target = 'productio
 // the second one is a context, which contains details about the API request and response.
 function ngProcProperties(jsonData, ctx) {
     // dump the body
-    console.log(jsonData);
+    console.log('In Callback:', jsonData);
     // dump something from the context
-    console.log(ctx.remoteAddress);
+    console.log('In Callback:', ctx.remoteAddress);
     // obtain the response object from the context
     const res = ctx._res;
     // dump the peer certificate of the response
-    console.log(res.socket.peerCertificate);
+    console.log('In Callback:', res.socket.peerCertificate);
     // ctx.options is the options object used to make the call
     // ctx.times is an object containing timestamps of the call
-    console.log(ctx.times);
+    console.log('In Callback:', ctx.times);
     // ctx.err is the error object, if any
 }
 
 listProperties({limit:3});
+
+async function listCertificates({limit = 5, range = 'self+children', target = 'production'}) {
+    //build the options, including the auth header from credential
+    const ngOptions = buildAuth(cred.cdnPro);
+    // fill in the details of the API endpoint
+    ngOptions.path = `/cdn/certificates?target=${target}&limit=${limit}`;
+    ngOptions.headers['Report-Range']=range;
+    try {
+        // make the call with the options, without a callback function
+        // a promise is returned, which will be resolved when the call is completed
+        const rsp = await callServer(ngOptions);
+        console.log('In Async:', rsp.obj);
+        console.log('In Async:', rsp.ctx.remoteAddress);
+        const res = rsp.ctx._res;
+        console.log('In Async:', res.socket.peerCertificate);
+        console.log('In Async:', rsp.ctx.times);
+    } catch (err) {
+        console.error('In Async:', err);
+    }
+}
+
+listCertificates({limit:3});
+console.log('API calls are in progress ...');
