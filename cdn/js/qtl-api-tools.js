@@ -15,7 +15,7 @@ const buildCncAuth = function(serverInfo) {
     const authData = Buffer.from(serverInfo.user+':'+b64passwd).toString('base64');
 
     return {
-      host: serverInfo.host,
+      hostname: serverInfo.host,
       method: 'GET',
       headers: {
         'Accept': 'application/json',
@@ -34,8 +34,8 @@ const callServer = function(options, proc) {
     if (options.headers === undefined) options.headers = {};
     if (body) options.headers['Content-Length']=`${Buffer.byteLength(body)}`;
     const ctx = options.ctx||{};
-    ctx.options = options;
-    ctx.times = {start:stime};
+    ctx.options = options; // keep a copy of the options
+    ctx.times = {start:stime}; // keep timestamps of the call
 
     let scheme = https;
     if (options.scheme === 'http') scheme = http;
@@ -44,17 +44,18 @@ const callServer = function(options, proc) {
     // agentOptions:{lookup:(h,o,c)=>{c(null,'58.220.72.220',4);}}
     // to override DNS to always resolve to a another hostname:
     // agentOptions:{lookup:(h,o,c)=>{dns.lookup('other.hostname.com',o,c);}}
-    if (options.agentOptions) {
-        options.agent = new scheme.Agent(options.agentOptions);
+    if (options.agentOptions && options.agentOptions.lookup) {
+        options.lookup = options.agentOptions.lookup;
     }
+    options.agent = new scheme.Agent(options);
 
     let request = scheme.request(options, (res) => {
         //this is the callback function when the response header is received.
         const hdrTime = Date.now();
         ctx._res = res;
         ctx.times.header = hdrTime;
-        ctx.remoteAddress = res.connection.remoteAddress;
-        res.connection.peerCertificate = res.connection.getPeerCertificate();
+        ctx.remoteAddress = res.socket.remoteAddress;
+        res.socket.peerCertificate = res.socket.getPeerCertificate();
         if (options.debug) {
             console.log(stringify(res));
         }
@@ -91,17 +92,7 @@ const callServer = function(options, proc) {
             if (uncomp) uncomp.write(chunk);
             else data += chunk;
         });
-        res.on('end', () => {
-            if (uncomp) uncomp.end();
-            else finalProc();
-        });
-        if (uncomp) {
-            uncomp.on('data', (chunk) => {
-                data += chunk;
-            });
-            uncomp.on('end', finalProc);
-        }
-        function finalProc() {
+        const finalProc = function() {
             const resTime = Date.now();
             ctx.times.finish = resTime;
             ctx.bodyBytes={raw:len, decoded:data.length};
@@ -117,6 +108,16 @@ const callServer = function(options, proc) {
                 xmlParser.parseString(data, (err, obj)=>{proc(obj, ctx)});
             }else proc(data, ctx);
         }
+        res.on('end', () => {
+            if (uncomp) uncomp.end();
+            else finalProc();
+        });
+        if (uncomp) {
+            uncomp.on('data', (chunk) => {
+                data += chunk;
+            });
+            uncomp.on('end', finalProc);
+        }
     });
 
     request.on('error', (err) => {
@@ -126,6 +127,23 @@ const callServer = function(options, proc) {
             ctx.times.finish = resTime;
             ctx.err = err; //in case of error, ctx.err is set
             proc(null, ctx);
+        }
+    });
+
+    //get the timestamp of the connection
+    request.on('socket', (socket) => {
+        ctx.times.socket = Date.now();
+        socket.on('lookup', () => {
+            ctx.times.dns = Date.now();
+        });
+        socket.on('connect', () => {
+            ctx.times.connect = Date.now();
+        });
+        if (scheme === https) {
+            // get the timestamp of TLS handshake
+            socket.on('secureConnect', () => {
+                ctx.times.tls = Date.now();
+            });
         }
     });
 
