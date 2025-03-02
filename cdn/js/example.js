@@ -1,4 +1,4 @@
-const { buildAuth, callServer } = require('./qtl-api-tools');
+const { buildAuth, callServer } = require('./cdnpro-helper');
 const { cred } = require('./SECRET_credentials');
 
 function listProperties({limit = 5, range = 'self+children', target = 'production'}) {
