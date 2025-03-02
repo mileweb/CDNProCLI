@@ -1,4 +1,4 @@
-const { buildAuth, callServer } = require('./cdnpro-helper');
+const { buildAuth, callServer, cdnpro } = require('./cdnpro-helper');
 const { cred } = require('./SECRET_credentials');
 
 function listProperties({limit = 5, range = 'self+children', target = 'production'}) {
@@ -33,8 +33,6 @@ function ngProcProperties(jsonData, ctx) {
     // ctx.err is the error object, if any
 }
 
-listProperties({limit:3});
-
 async function listCertificates({limit = 5, range = 'self+children', target = 'production'}) {
     //build the options, including the auth header from credential
     const ngOptions = buildAuth(cred.cdnPro);
@@ -55,5 +53,10 @@ async function listCertificates({limit = 5, range = 'self+children', target = 'p
     }
 }
 
-listCertificates({limit:3});
+listProperties({limit:3}); // with callback
+listCertificates({limit:3}); // with async/await
 console.log('API calls are in progress ...');
+console.log('Test reqTimeRange ...');
+console.log(cdnpro.reqTimeRange({start: '2022-02-26Z-8', span: '7d'}));
+console.log(cdnpro.reqTimeRange({end: 'now', span: '30d'}));
+console.log(cdnpro.reqTimeRange({center: 'Mar 1, 2025 10:12:34 GMT-8', span: '30m'}));

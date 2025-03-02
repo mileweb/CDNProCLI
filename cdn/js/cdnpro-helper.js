@@ -4,9 +4,19 @@ const fs = require('fs');
 const zlib = require('zlib');
 const xml2js = require('xml2js');
 const crypto = require('crypto');
-var xmlParser = new xml2js.Parser();
 
-const buildCncAuth = function(serverInfo) {
+let xmlParser = new xml2js.Parser();
+let serverSecret = null;
+
+const setServerInfo = function(serverInfo) {
+    serverSecret = serverInfo;
+}
+
+const buildAuth = function(serverInfo) {
+    serverInfo = serverInfo || serverSecret;
+    if (serverInfo === null) {
+        throw new Error('Server Secret is not set');
+    }
     const now = new Date();
     const dateStr = now.toUTCString();
     const hmac = crypto.createHmac('sha1', serverInfo.secretKey);
@@ -21,7 +31,8 @@ const buildCncAuth = function(serverInfo) {
         'Accept': 'application/json',
         'Authorization': ' Basic '+authData,
         'Date': dateStr,
-        'Accept-Encoding': 'gzip'
+        'Accept-Encoding': 'gzip',
+        'Cache-Control': 'no-cache'
       },
       timeout: 10000, //socket connection times out in 10 seconds
       abortOnError: true  //abort if status code is not 200 or 201
@@ -88,16 +99,7 @@ const callServer = function(options, proc) {
                     console.error('Response Headers', res.headers);
                     console.error('Request Headers', options.headers);
                 }
-                if (options.abortOnError) {
-                    console.log('Aborting ...');
-                    res.resume();
-                    if (reject) {
-                        const err = new Error(`Did not get an OK from the server, Code: ${res.statusCode}`);
-                        err.ctx = ctx;
-                        reject(err);
-                    }
-                    return;
-                }
+                // continue to read the response body
             }
             let uncomp = null;
             let ce = res.headers['content-encoding'];
@@ -123,33 +125,39 @@ const callServer = function(options, proc) {
                 const resTime = Date.now();
                 ctx.times.finish = resTime;
                 ctx.bodyBytes={raw:len, decoded:data.length};
+                let statusOk = res.statusCode === 200 || res.statusCode === 201;
+
                 if (options.quiet !== true) {
                     const headerSec = (hdrTime - stime)/1000;
                     const totalSec = (resTime - stime)/1000;
                     console.log(`hdrTime ${headerSec}s, total ${totalSec}s, got status ${res.statusCode} w/ ${len} => ${data.length} bytes from `+ options.host+options.path);
                 }
-                let ct = res.headers['content-type'] || '';
-                if (ct.indexOf('application/json') > -1) {
-                    const obj = JSON.parse(data);
-                    if (resolve) {
-                        resolve({obj, ctx});
-                    } else
-                        proc(obj, ctx);
-                }else if (ct.indexOf('application/xml') > -1) {
-                    xmlParser.parseString(data, (err, obj)=>{
+                const callBack = function(obj) {
+                    if (statusOk || options.abortOnError !== true) {
                         if (resolve) {
                             resolve({obj, ctx});
                         } else
-                            proc(obj, ctx)
+                            proc(obj, ctx);
+                    } else {
+                        const err = new Error('Status code is not 200 or 201');
+                        err.body = obj;
+                        if (reject) {
+                            reject(err);
+                        } else {
+                            throw err;
+                        }
+                    }
+                }
+                let ct = res.headers['content-type'] || '';
+                if (ct.indexOf('application/json') > -1) {
+                    const obj = JSON.parse(data);
+                    callBack(obj);
+                }else if (ct.indexOf('application/xml') > -1) {
+                    xmlParser.parseString(data, (err, obj)=>{
+                        callBack(obj);
                     });
                 }else {
-                    if (reject) {
-                        const err = new Error('Unknown content type: '+ct);
-                        err.ctx = ctx;
-                        reject(err);
-                    } else if (proc) {
-                        proc(data, ctx);
-                    }
+                    callBack(data);
                 }
             }
             res.on('end', () => {
@@ -165,7 +173,9 @@ const callServer = function(options, proc) {
         });
 
         request.on('error', (err) => {
-            console.error('Request to '+options.host+options.path+` got error:\n${err.message}`);
+            if (options.quiet !== true) {
+                console.error('Request to '+options.host+options.path+` got error:\n${err.message}`);
+            }
             if (reject) {
                 err.ctx = ctx;
                 reject(err);
@@ -195,7 +205,9 @@ const callServer = function(options, proc) {
         });
 
         request.setTimeout(30000, () => {
-            console.error('Request to '+options.host+options.path+' timed out after 30 seconds.');
+            if (options.quiet !== true) {
+                console.error('Request to '+options.host+options.path+' timed out after 30 seconds.');
+            }
             if (reject) {
                 const err = new Error('Request timed out after 30 seconds.');
                 err.ctx = ctx;
@@ -243,5 +255,152 @@ var replaceCircular6 = function(val, cache) {
     return val;
 };
 
-exports.buildAuth = buildCncAuth;
-exports.callServer = callServer; 
+/*
+    * rangeSpec: {
+    *  start: '2022-02-26Z-8', // optional
+    *  end: 'now', // optional
+    *  span: '7d', // optional
+    * center: '2022-02-26Z-8' // optional
+    * }
+*/
+const reqTimeRange = function(rangeSpec) {
+    let endDate = null;
+    let startDate = null;
+    let now = new Date();
+
+    if (rangeSpec.end) {
+        if (rangeSpec.end === 'now') {
+            endDate = now;
+        } else
+            endDate = new Date(rangeSpec.end);
+    }
+    if (rangeSpec.start) {
+        startDate = new Date(rangeSpec.start);
+    }
+    if (endDate === null || startDate === null) {
+        if (rangeSpec.span == null) {
+            throw new Error('span is not defined');
+        }
+        // convert the span to milliseconds
+        // span is a string like '1d', '2h', '3m', '4s'
+        const span = rangeSpec.span;
+        let spanVal = parseInt(span);
+        if (isNaN(spanVal)) {
+            throw new Error('span value is not a number');
+        }
+        let spanUnit = span.slice(-1);
+        let spanMs = 0;
+        switch (spanUnit) {
+            case 'd':
+                spanMs = spanVal * 86400000;
+                break;
+            case 'h':
+                spanMs = spanVal * 3600000;
+                break;
+            case 'm':
+                spanMs = spanVal * 60000;
+                break;
+            case 's':
+                spanMs = spanVal * 1000;
+                break;
+            default:
+                throw new Error('span unit is not recognized');
+        }
+        if (startDate) { // if start is defined, end is calculated from start
+            endDate = new Date(startDate.getTime() + spanMs);
+        } else if (endDate) { // if end is defined, start is calculated from end
+            startDate = new Date(endDate.getTime() - spanMs);
+        } else if (rangeSpec.center) {
+            const center = new Date(rangeSpec.center);
+            startDate = new Date(center.getTime() - spanMs/2);
+            endDate = new Date(center.getTime() + spanMs/2);
+        } else {
+            throw new Error('missing start, end, or center');
+        }
+    }
+    if (endDate > now) endDate = now;
+    if (endDate <= startDate) {
+        throw new Error('end date is not after start date');
+    }
+    // return a string: 'startDate=...&endDate=...'
+    return `startDate=${startDate.toISOString().substring(0,19)+'Z'}&endDate=${endDate.toISOString().substring(0,19)+'Z'}`;
+}
+
+const readline = require('readline');
+const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+});
+function askQuestion(query) {
+    return new Promise((resolve) => {
+        rl.question(query, resolve);
+    });
+}
+
+const diff = require('diff');
+function diffArrays(a, b) {
+    // convert the arrays to strings
+    const strA = JSON.stringify(a, null, 2);
+    const strB = JSON.stringify(b, null, 2);
+    // get the difference
+    const patch = diff.createTwoFilesPatch('before', 'after', strA, strB);
+    return patch;
+}
+
+async function getCustomer(customerId) {
+    console.log('Getting Customer Info ...');
+    const options = buildAuth(); // use the default server info from setServerInfo()
+    options.path = `/ngadmin/customers/${customerId}`;
+    options.quiet = true;
+    const customer = await callServer(options);
+    return customer.obj;
+}
+
+async function getServiceQuota(customerId) {
+    console.log('Getting Service Quota ...');
+    const options = buildAuth(); // use the default server info from setServerInfo()
+    options.path = `/cdn/serviceQuotas/customer/${customerId}`;
+    options.quiet = true;
+    const serviceQuota = await callServer(options);
+    //console.log('Service Quota:', serviceQuota.obj);
+    return serviceQuota.obj;
+}
+
+async function patchServiceQuota(serviceQuotaId, obj) {
+    console.log('Patching Service Quota ...');
+    const options = buildAuth(); // use the default server info from setServerInfo()
+    options.path = `/cdn/serviceQuotas/${serviceQuotaId}`;
+    options.method = 'PATCH';
+    options.headers['Content-Type']='application/json; charset=UTF-8';
+    options.reqBody = JSON.stringify(obj);
+    options.quiet = true;
+    const serviceQuota = await callServer(options);
+    return serviceQuota.obj;
+}
+
+async function getSystemConfigs() {
+    console.log('Getting systemConfigs ...');
+    const options = buildAuth(); // use the default server info from setServerInfo()
+    options.path = `/cdn/systemConfigs`;
+    options.quiet = true;
+    const apiResp = await callServer(options);
+    //console.log('systemConfigs:', apiResp.obj);
+    return apiResp.obj;
+}
+
+const cdnpro = {
+    setServerInfo: setServerInfo,
+    buildAuth: buildAuth,
+    callServer: callServer,
+    reqTimeRange: reqTimeRange,
+    askQuestion: askQuestion,
+    diffArrays: diffArrays,
+    getCustomer: getCustomer,
+    getServiceQuota: getServiceQuota,
+    patchServiceQuota: patchServiceQuota,
+    getSystemConfigs: getSystemConfigs
+}
+
+exports.buildAuth = buildAuth;
+exports.callServer = callServer;
+exports.cdnpro = cdnpro; 
