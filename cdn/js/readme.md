@@ -2,7 +2,7 @@
 
 This document describes the JavaScript library for managing the CDNetworks [CDN Pro service](https://www.cdnetworks.com/cdnpro/).
 
-The [cdnpro-helper.js](cdnpro-helper.js) file contains the help functions to generate the dynamic password, facilitate the HTTPS request and parse the response.
+The [cdnpro-helper.js](cdnpro-helper.js) file contains the helper functions to generate the dynamic password, facilitate the HTTPS request and parse the response.
 
 # Instructions
 1. Clone the latest files using the following command:

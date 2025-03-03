@@ -1,4 +1,4 @@
-const { buildAuth, callServer, cdnpro } = require('../cdnpro-helper');
+const { cdnpro } = require('../cdnpro-helper');
 const { cred } = require('../SECRET_credentials');
 
 function usage() {
@@ -11,8 +11,6 @@ function usage() {
     console.log('Example: node', scriptName, 'addExperimentalDirectives', 'directive1,directive2');
 }
 
-const ADV_EXP_DIV = 'VVVVVVVVVVVVVV_Experimental_Below_VVVVVVVVVVVVVVVV';
-
 async function main() {
     if (process.argv.length < 4) {
         usage();
@@ -24,13 +22,11 @@ async function main() {
         console.error('Error: directive list is empty');
         process.exit(1);
     }
-    /* 
-    step 0: get the customer info, display it, ask for confirmation
-    */
-    cdnpro.setServerInfo(cred.cdnPro);
+    cdnpro.setServerInfo(cred.cdnPro); // set the server info
     const sc = await cdnpro.getSystemConfigs();
     const patchObj = {};
     const field = action.indexOf('Base') != -1 ? 'baseDirectives' : 'advancedDirectives';
+    const ADV_EXP_DIV = 'VVVVVVVVVVVVVV_Experimental_Below_VVVVVVVVVVVVVVVV';
   
     if (action === 'addBaseDirectives') {
         patchObj[field] = Array.from(sc[field]);
