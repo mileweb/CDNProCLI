@@ -7,6 +7,7 @@ function usage() {
     console.log('  customerId: the customer ID');
     console.log('  action: one of addDirective, deleteDirective');
     console.log('  data: directives separated by comma');
+    console.log('Example: node', scriptName, '1234 addDirective', 'directive1,directive2');
 }
 
 async function main() {

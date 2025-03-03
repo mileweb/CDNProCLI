@@ -9,7 +9,7 @@ The [cdnpro-helper.js](cdnpro-helper.js) file contains the help functions to gen
 ```
 git clone https://github.com/mileweb/CDNProCLI.git
 ```
-2. go to the js directory and install the required package xml2js:
+2. go to the js directory and install the required packages:
 ```
 cd CDNProCLI/cdn/js
 npm install xml2js diff
@@ -32,6 +32,19 @@ node ./example.js
 
 # Examples
 You can study the example file [example.js](example.js) to learn the usage of of the library.
+
+# Tools
+There is currently one tool under the [tools](tools/) directory
+## updateServiceQuotas
+This tool can help you to easily add or remove one or more directives from the allowedCacheDirectives
+field of a customer's service quota. Usage:
+```bash
+node tools/updateServiceQuotas.js customerId action data
+  customerId: the customer ID
+  action: one of addDirective, deleteDirective
+  data: directives separated by comma
+Example: node tools/updateServiceQuotas.js 1234 addDirective directive1,directive2
+```
 
 # Dependencies
 ## node.js
