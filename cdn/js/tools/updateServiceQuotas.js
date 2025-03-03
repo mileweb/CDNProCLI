@@ -23,14 +23,6 @@ async function main() {
     }
     /* 
     step 0: get the customer info, display it, ask for confirmation
-    step 1: get the serviceQuota for the customer ID, display it
-    step 2: if action is addDirective, check if the directives are already in the serviceQuota
-            throw error if any directive is already in the serviceQuota
-            also check if the directives are in systemConfig
-            if action is deleteDirective, check if the directives are in the serviceQuota
-            throw error if any directive is not in the serviceQuota
-    step 3: ask user to confirm the action
-    step 4: update the serviceQuota by a PATCH request
     */
     cdnpro.setServerInfo(cred.cdnPro);
     const customer = await cdnpro.getCustomer(customerId);
@@ -45,55 +37,81 @@ async function main() {
     }
     const sq = await cdnpro.getServiceQuota(customerId);
     const sc = await cdnpro.getSystemConfigs();
-    const newSQ = {allowedCacheDirectives: Array.from(sq.allowedCacheDirectives)};
-    // check if sq.allowedCacheDirectives includes the data
-    if (action === 'addDirective') {
-        for (let d of data) {
-            if (newSQ.allowedCacheDirectives.includes(d)) {
-                console.error(`Error: '${d}' is already in the serviceQuota`);
-                process.exit(1);
+    const patchObj = {};
+    /*
+    step 1: get the serviceQuota for the customer ID, display it
+    step 2: if action is addDirective, check if the directives are already in the serviceQuota
+            throw error if any directive is already in the serviceQuota
+            also check if the directives are in systemConfig
+            if action is deleteDirective, check if the directives are in the serviceQuota
+            throw error if any directive is not in the serviceQuota
+    */
+    const updateAllowedDirectives = function() {
+        patchObj.allowedCacheDirectives = Array.from(sq.allowedCacheDirectives);
+        // check if sq.allowedCacheDirectives includes the data
+        if (action === 'addDirective') {
+            for (let d of data) {
+                if (patchObj.allowedCacheDirectives.includes(d)) {
+                    console.error(`Error: '${d}' is already in the serviceQuota`);
+                    process.exit(1);
+                }
+                if (sc.baseDirectives.includes(d)) {
+                    console.error(`Error: '${d}' is a base directive, no need to add to the serviceQuota`);
+                    process.exit(1);
+                }
+                if (!sc.advancedDirectives.includes(d)) {
+                    console.error(`Error: '${d}' is NOT a valid advanced directive in the systemConfig`);
+                    process.exit(1);
+                }
+                patchObj.allowedCacheDirectives.push(d);
             }
-            if (sc.baseDirectives.includes(d)) {
-                console.error(`Error: '${d}' is a base directive, no need to add to the serviceQuota`);
-                process.exit(1);
+        } else if (action === 'deleteDirective') {
+            for (let d of data) {
+                if (!patchObj.allowedCacheDirectives.includes(d)) {
+                    console.error(`Error: '${d}' is NOT in the serviceQuota`);
+                    process.exit(1);
+                }
+                // remove the directive from the serviceQuota
+                patchObj.allowedCacheDirectives = patchObj.allowedCacheDirectives.filter(x => x !== d);
             }
-            if (!sc.advancedDirectives.includes(d)) {
-                console.error(`Error: '${d}' is NOT a valid advanced directive in the systemConfig`);
-                process.exit(1);
-            }
-            newSQ.allowedCacheDirectives.push(d);
+        } else {
+            console.error('Error: action must be one of addDirective, deleteDirective');
+            process.exit(1);
         }
-    } else if (action === 'deleteDirective') {
-        for (let d of data) {
-            if (!newSQ.allowedCacheDirectives.includes(d)) {
-                console.error(`Error: '${d}' is NOT in the serviceQuota`);
-                process.exit(1);
-            }
-            // remove the directive from the serviceQuota
-            newSQ.allowedCacheDirectives = newSQ.allowedCacheDirectives.filter(x => x !== d);
-        }
-    } else {
-        console.error('Error: action must be one of addDirective, deleteDirective');
-        process.exit(1);
+        patchObj.allowedCacheDirectives.sort();
+        sq.allowedCacheDirectives.sort();
+        // display the diff between the original and the new serviceQuota
+        const diffTxt = cdnpro.diffObjects(sq.allowedCacheDirectives, patchObj.allowedCacheDirectives);
+        console.log('Changes being made to allowedCacheDirectives:');
+        console.log(diffTxt);
+        console.log(`Items before the change: ${sq.allowedCacheDirectives.length}`);
+        console.log(`Items after the change: ${patchObj.allowedCacheDirectives.length}`);
+    } // end of updateAllowedDirectives()
+    if (action === 'addDirective' || action === 'deleteDirective') {
+        updateAllowedDirectives();
     }
-    newSQ.allowedCacheDirectives.sort();
-    // make a PATCH request to update the serviceQuota
-    sq.allowedCacheDirectives.sort();
-    const patch = cdnpro.diffArrays(sq.allowedCacheDirectives, newSQ.allowedCacheDirectives);
-    console.log(patch);
-    console.log(`allowedCacheDirectives before the change has ${sq.allowedCacheDirectives.length} items:`);
-    console.log(`allowedCacheDirectives after the change has ${newSQ.allowedCacheDirectives.length} items:`);
-    // ask for confirmation from console. Continue if yes, exit if no.
-    answer = await cdnpro.askQuestion('Continue with the patch? (y/n):');
+    // step 3: ask user to confirm the action
+    answer = await cdnpro.askQuestion('Continue with the change? (y/n):');
     if (answer.toLowerCase() !== 'y') {
         console.log('Exiting ...');
         process.exit(0);
     }
-    await cdnpro.patchServiceQuota(sq.serviceQuotaId, newSQ);
-    console.log('Service Quota has been updated.');
-    const newSQ2 = await cdnpro.getServiceQuota(customerId);
-    console.log('Allowed directives in new Service Quota:', newSQ2.allowedCacheDirectives);
-    console.log(`has ${newSQ2.allowedCacheDirectives.length} items.`);
+    // step 4: update the serviceQuota by a PATCH request
+    await cdnpro.patchServiceQuota(sq.serviceQuotaId, patchObj);
+    console.log(`Service Quota for customer ${customerId} has been updated.`);
+    const newSQ = await cdnpro.getServiceQuota(customerId, {noCache:true});
+    console.log(`There are ${newSQ.allowedCacheDirectives.length} allowedCacheDirectives now.`);
+    const newObj = {};
+    for (let k in patchObj) { //copy the updated fields to newObj
+        newObj[k] = newSQ[k];
+    }
+    const diffTxt = cdnpro.diffObjects(patchObj, newObj);
+    if (diffTxt.length === 0) {
+        console.log('The update is verified to be exactly as expected.');
+    } else {
+        console.error('Error: The update is NOT as expected.');
+        console.error(diffTxt);
+    }
     process.exit(0);
 }
 

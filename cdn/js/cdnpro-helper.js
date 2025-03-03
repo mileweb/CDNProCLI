@@ -12,7 +12,7 @@ const setServerInfo = function(serverInfo) {
     serverSecret = serverInfo;
 }
 
-const buildAuth = function(serverInfo) {
+const buildAuth = function(serverInfo, options) {
     serverInfo = serverInfo || serverSecret;
     if (serverInfo === null) {
         throw new Error('Server Secret is not set');
@@ -24,19 +24,33 @@ const buildAuth = function(serverInfo) {
     const b64passwd = hmac.digest('base64');
     const authData = Buffer.from(serverInfo.user+':'+b64passwd).toString('base64');
 
-    return {
+    const r = {
       hostname: serverInfo.host,
       method: 'GET',
       headers: {
         'Accept': 'application/json',
         'Authorization': ' Basic '+authData,
         'Date': dateStr,
-        'Accept-Encoding': 'gzip',
-        'Cache-Control': 'no-cache'
+        'Accept-Encoding': 'gzip'
       },
       timeout: 10000, //socket connection times out in 10 seconds
       abortOnError: true  //abort if status code is not 200 or 201
     };
+    if (options) {
+        if (options.noCache === true) {
+            r.headers['Cache-Control']='no-cache';
+        }
+        if (options.quiet != null) {
+            r.quiet = options.quiet;
+        }
+        if (options.debug != null) {
+            r.debug = options.debug;
+        }
+        if (options.abortOnError != null) {
+            r.abortOnError = options.abortOnError;
+        }
+    }
+    return r;
 }
 
 /*
@@ -337,28 +351,31 @@ function askQuestion(query) {
     });
 }
 
-const diff = require('diff');
-function diffArrays(a, b) {
-    // convert the arrays to strings
-    const strA = JSON.stringify(a, null, 2);
-    const strB = JSON.stringify(b, null, 2);
-    // get the difference
-    const patch = diff.createTwoFilesPatch('before', 'after', strA, strB);
-    return patch;
+const Diff = require('diff');
+function diffObjects(a, b) {
+    const diff = Diff.diffJson(a, b);
+    let diffTxt = '';
+    diff.forEach((part) => {
+        let change = part.added ? '+' : part.removed ? '-' : null;
+        if (change) {
+            diffTxt += change + part.value;
+        }
+    });
+    return diffTxt;
 }
 
-async function getCustomer(customerId) {
+async function getCustomer(customerId, o) {
     console.log('Getting Customer Info ...');
-    const options = buildAuth(); // use the default server info from setServerInfo()
+    const options = buildAuth(null, o); // use the default server info from setServerInfo()
     options.path = `/ngadmin/customers/${customerId}`;
     options.quiet = true;
     const customer = await callServer(options);
     return customer.obj;
 }
 
-async function getServiceQuota(customerId) {
+async function getServiceQuota(customerId, o) {
     console.log('Getting Service Quota ...');
-    const options = buildAuth(); // use the default server info from setServerInfo()
+    const options = buildAuth(null, o); // use the default server info from setServerInfo()
     options.path = `/cdn/serviceQuotas/customer/${customerId}`;
     options.quiet = true;
     const serviceQuota = await callServer(options);
@@ -378,9 +395,9 @@ async function patchServiceQuota(serviceQuotaId, obj) {
     return serviceQuota.obj;
 }
 
-async function getSystemConfigs() {
+async function getSystemConfigs(o) {
     console.log('Getting systemConfigs ...');
-    const options = buildAuth(); // use the default server info from setServerInfo()
+    const options = buildAuth(null, o); // use the default server info from setServerInfo()
     options.path = `/cdn/systemConfigs`;
     options.quiet = true;
     const apiResp = await callServer(options);
@@ -394,7 +411,7 @@ const cdnpro = {
     callServer: callServer,
     reqTimeRange: reqTimeRange,
     askQuestion: askQuestion,
-    diffArrays: diffArrays,
+    diffObjects: diffObjects,
     getCustomer: getCustomer,
     getServiceQuota: getServiceQuota,
     patchServiceQuota: patchServiceQuota,
