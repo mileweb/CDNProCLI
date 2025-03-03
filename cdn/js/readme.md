@@ -34,9 +34,20 @@ node ./example.js
 You can study the example file [example.js](example.js) to learn the usage of of the library.
 
 # Tools
-There is currently one tool under the [tools](tools/) directory
-## updateServiceQuotas
-This tool can help you to easily add or remove one or more directives from the allowedCacheDirectives
+There is currently 3 tools under the [tools](tools/) directory
+## cdnPro.js
+This tool helps you to view some CDN Pro resources, such as customer, service quota. Usage:
+```bash
+node tools/cdnPro.js function data
+  function: the function name to call, one of:
+     getCustomer
+     getServiceQuota
+     getSystemConfigs
+  data: parameters for the function
+Example: node tools/cdnPro.js getCustomer 123
+```
+## updateServiceQuotas.js
+This tool can help administrators to easily add or remove one or more directives from the allowedCacheDirectives
 field of a customer's service quota. Usage:
 ```bash
 node tools/updateServiceQuotas.js customerId action data
@@ -44,6 +55,16 @@ node tools/updateServiceQuotas.js customerId action data
   action: one of addDirective, deleteDirective
   data: directives separated by comma
 Example: node tools/updateServiceQuotas.js 1234 addDirective directive1,directive2
+```
+## updateSystemConfig.js
+This tools helps our product team to update the directive lists of systemConfigs. Usage:
+```bash
+node tools/updateSystemConfigs.js action data
+  action: one of addBaseDirectives, deleteBaseDirectives
+                 addAdvancedDirectives, deleteAdvancedDirectives
+                 addExperimentalDirectives, deleteExperimentalDirectives
+  data: directives separated by comma
+Example: node tools/updateSystemConfigs.js addExperimentalDirectives directive1,directive2
 ```
 
 # Dependencies

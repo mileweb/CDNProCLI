@@ -31,7 +31,8 @@ const buildAuth = function(serverInfo, options) {
         'Accept': 'application/json',
         'Authorization': ' Basic '+authData,
         'Date': dateStr,
-        'Accept-Encoding': 'gzip'
+        'Accept-Encoding': 'gzip',
+        'User-Agent': 'cdnpro-helper/1.0'
       },
       timeout: 10000, //socket connection times out in 10 seconds
       abortOnError: true  //abort if status code is not 200 or 201
@@ -354,6 +355,7 @@ function askQuestion(query) {
 const Diff = require('diff');
 function diffObjects(a, b) {
     const diff = Diff.diffJson(a, b);
+//    console.log('Diff:', diff);
     let diffTxt = '';
     diff.forEach((part) => {
         let change = part.added ? '+' : part.removed ? '-' : null;
@@ -405,6 +407,18 @@ async function getSystemConfigs(o) {
     return apiResp.obj;
 }
 
+async function patchSystemConfigs(obj) {
+    console.log('Patching systemConfigs ...');
+    const options = buildAuth(); // use the default server info from setServerInfo()
+    options.path = `/cdn/systemConfigs`;
+    options.method = 'PATCH';
+    options.headers['Content-Type']='application/json; charset=UTF-8';
+    options.reqBody = JSON.stringify(obj);
+    options.quiet = true;
+    const systemConfig = await callServer(options);
+    return systemConfig.obj;
+}
+
 const cdnpro = {
     setServerInfo: setServerInfo,
     buildAuth: buildAuth,
@@ -415,7 +429,8 @@ const cdnpro = {
     getCustomer: getCustomer,
     getServiceQuota: getServiceQuota,
     patchServiceQuota: patchServiceQuota,
-    getSystemConfigs: getSystemConfigs
+    getSystemConfigs: getSystemConfigs,
+    patchSystemConfigs: patchSystemConfigs
 }
 
 exports.buildAuth = buildAuth;

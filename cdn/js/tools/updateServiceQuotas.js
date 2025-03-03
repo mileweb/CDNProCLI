@@ -27,7 +27,7 @@ async function main() {
     */
     cdnpro.setServerInfo(cred.cdnPro);
     const customer = await cdnpro.getCustomer(customerId);
-    // copy a few fields to the customer object
+    // copy a few fields to the customerInfo object
     const customerInfo = {id:customer.customerId, name:customer.name, responsiblePerson:customer.responsiblePerson};
     console.log('Customer Info:', customerInfo);
     // ask for confirmation from console. Continue if yes, exit if no.
