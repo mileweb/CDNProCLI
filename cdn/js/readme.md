@@ -4,7 +4,7 @@ This document describes the JavaScript library for managing the CDNetworks [CDN 
 
 The [cdnpro-helper.js](cdnpro-helper.js) file contains the helper functions to generate the dynamic password, facilitate the HTTPS request and parse the response.
 
-# Instructions
+# Get Started
 1. Clone the latest files using the following command:
 ```
 git clone https://github.com/mileweb/CDNProCLI.git
@@ -69,7 +69,7 @@ Example: node tools/updateSystemConfigs.js addExperimentalDirectives directive1,
 
 # Dependencies
 ## node.js
-Installation instructions: https://nodejs.dev/learn/how-to-install-nodejs
+Installation instructions: https://nodejs.org/en/download
 ## node package manager (npm)
 
 # References
