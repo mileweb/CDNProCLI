@@ -1,9 +1,9 @@
-const { buildAuth, callServer, cdnpro } = require('./cdnpro-helper');
+const { cdnpro } = require('./cdnpro-helper');
 const { cred } = require('./SECRET_credentials');
 
 function listProperties({limit = 5, range = 'self+children', target = 'production'}) {
     //build the options, including the auth header from credential
-    const ngOptions = buildAuth(cred.cdnPro);
+    const ngOptions = cdnpro.buildAuth(cred.cdnPro);
     // fill in the details of the API endpoint
     ngOptions.path = `/cdn/properties?target=${target}&limit=${limit}`;
     ngOptions.headers['Report-Range']=range;
@@ -12,7 +12,7 @@ function listProperties({limit = 5, range = 'self+children', target = 'productio
     // false means do not abort under any circumstances. Always call the callback.
     ngOptions.abortOnError = false;
     // make the call with the options, supply a callback function
-    callServer(ngOptions, ngProcProperties);
+    cdnpro.callServer(ngOptions, ngProcProperties);
 }
 
 // the callback function, takes 2 parameters.
@@ -35,14 +35,14 @@ function ngProcProperties(jsonData, ctx) {
 
 async function listCertificates({limit = 5, range = 'self+children', target = 'production'}) {
     //build the options, including the auth header from credential
-    const ngOptions = buildAuth(cred.cdnPro);
+    const ngOptions = cdnpro.buildAuth(cred.cdnPro);
     // fill in the details of the API endpoint
     ngOptions.path = `/cdn/certificates?target=${target}&limit=${limit}`;
     ngOptions.headers['Report-Range']=range;
     try {
         // make the call with the options, without a callback function
         // a promise is returned, which will be resolved when the call is completed
-        const rsp = await callServer(ngOptions);
+        const rsp = await cdnpro.callServer(ngOptions);
         console.log('In Async:', rsp.obj);
         console.log('In Async:', rsp.ctx.remoteAddress);
         const res = rsp.ctx._res;
@@ -53,10 +53,14 @@ async function listCertificates({limit = 5, range = 'self+children', target = 'p
     }
 }
 
-listProperties({limit:3}); // with callback
-listCertificates({limit:3}); // with async/await
-console.log('API calls are in progress ...');
-console.log('Test reqTimeRange ...');
-console.log(cdnpro.reqTimeRange({start: '2022-02-26Z-8', span: '7d'}));
-console.log(cdnpro.reqTimeRange({end: 'now', span: '30d'}));
-console.log(cdnpro.reqTimeRange({center: 'Mar 1, 2025 10:12:34 GMT-8', span: '30m'}));
+async function main() {
+    listProperties({limit:3}); // with callback
+    await listCertificates({limit:3}); // with async/await
+    console.log('API calls are in progress ...');
+    console.log('Test reqTimeRange ...');
+    console.log(cdnpro.reqTimeRange({start: '2022-02-26Z-8', span: '7d'}));
+    console.log(cdnpro.reqTimeRange({end: 'now', span: '30d'}));
+    console.log(cdnpro.reqTimeRange({center: 'Mar 1, 2025 10:12:34 GMT-8', span: '30m'}));
+}
+
+main();

@@ -21,6 +21,11 @@ async function main() {
     }
     const func = process.argv[2];
     const data = process.argv[3];
+    if (!cdnpro[func] || typeof cdnpro[func] !== 'function' || !func.startsWith('get')) {
+        console.error('Error: function', func, 'not found');
+        usage();
+        process.exit(1);
+    }
     cdnpro.setServerInfo(cred.cdnPro);
     const result = await cdnpro[func](data);
     console.log(result);

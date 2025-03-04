@@ -41,6 +41,9 @@ const buildAuth = function(serverInfo, options) {
         if (options.noCache === true) {
             r.headers['Cache-Control']='no-cache';
         }
+        if (options.includeChildren === true) {
+            r.headers['Report-Range']='self+children';
+        }
         if (options.quiet != null) {
             r.quiet = options.quiet;
         }
@@ -375,14 +378,62 @@ async function getCustomer(customerId, o) {
     return customer.obj;
 }
 
+async function listCustomers(o) {
+    console.log('Getting Customer List ...');
+    const options = buildAuth(null, o); // use the default server info from setServerInfo()
+    options.path = `/ngadmin/customers`;
+    let qs = [];
+    if (o) {
+        const paramList = ['search','status','limit','offset','type','parentId','email'];
+        for (let p of paramList) {
+            if (o[p]) {
+                qs.push(`${p}=${o[p]}`);
+            }
+        }
+        const arrParamList = ['ids','regionalOffices','products'];
+        for (let p of arrParamList) {
+            if (o[p]) {
+                let commaList = o[p].join(',');
+                qs.push(`${p}=${commaList}`);
+            }
+        }
+    }
+    if (qs.length > 0) {
+        options.path += '?'+qs.join('&');
+    }
+    options.quiet = true;
+    const customer = await callServer(options);
+    return customer.obj;
+}
+
 async function getServiceQuota(customerId, o) {
     console.log('Getting Service Quota ...');
     const options = buildAuth(null, o); // use the default server info from setServerInfo()
-    options.path = `/cdn/serviceQuotas/customer/${customerId}`;
+    options.path = '/cdn/serviceQuotas';
+    if (customerId) {
+        options.path += `/customer/${customerId}`;
+    }
+    let qs = [];
+    if (o) {
+        const paramList = ['search','status','allowProduction','usageLimit','contractId','allowedCacheDirectives',
+                           'accountManagerEmail','advancedFeatures','limit','offset'];
+        for (let p of paramList) {
+            if (o[p]) {
+                qs.push(`${p}=${o[p]}`);
+            }
+        }
+    }
+    if (qs.length > 0) {
+        options.path += '?'+qs.join('&');
+    }
     options.quiet = true;
     const serviceQuota = await callServer(options);
     //console.log('Service Quota:', serviceQuota.obj);
     return serviceQuota.obj;
+}
+
+async function listServiceQuotas(o) {
+    return getServiceQuota(null, o);
 }
 
 async function patchServiceQuota(serviceQuotaId, obj) {
@@ -427,7 +478,9 @@ const cdnpro = {
     askQuestion: askQuestion,
     diffObjects: diffObjects,
     getCustomer: getCustomer,
+    listCustomers: listCustomers,
     getServiceQuota: getServiceQuota,
+    listServiceQuotas: listServiceQuotas,
     patchServiceQuota: patchServiceQuota,
     getSystemConfigs: getSystemConfigs,
     patchSystemConfigs: patchSystemConfigs

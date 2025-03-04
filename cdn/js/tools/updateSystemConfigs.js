@@ -61,6 +61,18 @@ async function main() {
         const advDirList = sc[field].slice(0, divIdx).sort();
         const expDirList = sc[field].slice(divIdx + 1).sort();
         sc.advancedDirectives = advDirList.concat([ADV_EXP_DIV], expDirList);
+        let checkAdvDirUsers = async function(d) {
+            const svcQuotas = await cdnpro.listServiceQuotas({includeChildren:true, allowedCacheDirectives: d});
+            if (svcQuotas.count > 0) {
+                const cids = svcQuotas.serviceQuotaList.map(x => x.customerId);
+                const result = await cdnpro.listCustomers({ids:cids});
+                console.error(`Error: '${d}' is in ${svcQuotas.count} serviceQuotas. Here is the customer list:`);
+                console.error(result.customers.map(c => {return {customerId:c.customerId, name:c.name}} ));
+                console.error('Please remove the directive from the serviceQuotas first.');
+                console.error(`For example, you cann call 'node updateServiceQuotas.js ${cids[0]} deleteDirective ${d}'`);
+                process.exit(1);
+            }
+        }
         if (action === 'addAdvancedDirectives') {
             const advancedDirectives = Array.from(advDirList);
             for (let d of data) {
@@ -88,6 +100,7 @@ async function main() {
                     console.error(`Error: '${d}' is not in advancedDirectives`);
                     process.exit(1);
                 }
+                await checkAdvDirUsers(d);
                 advancedDirectives.splice(index, 1);
             }
             advancedDirectives.sort();
@@ -119,6 +132,7 @@ async function main() {
                     console.error(`Error: '${d}' is not in experimentalDirectives`);
                     process.exit(1);
                 }
+                await checkAdvDirUsers(d);
                 experimentalDirectives.splice(index, 1);
             }
             experimentalDirectives.sort();
