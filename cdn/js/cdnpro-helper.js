@@ -66,7 +66,7 @@ const buildAuth = function(serverInfo, options) {
             r.quiet = options.quiet;
         }
         if (options.debug != null) {
-            r.debug = options.debug;
+            r.headers['x-debug']=options.debug;
         }
         if (options.abortOnError != null) {
             r.abortOnError = options.abortOnError;
@@ -292,12 +292,12 @@ var replaceCircular6 = function(val, cache) {
 };
 
 /*
-    * rangeSpec: {
-    *  start: '2022-02-26Z-8', // optional
-    *  end: 'now', // optional
-    *  span: '7d', // optional
-    * center: '2022-02-26Z-8' // optional
-    * }
+    rangeSpec: {
+      start: '2022-02-26Z-8', // optional
+      end: 'now', // optional
+      span: '7d', // optional
+      center: '2022-02-26Z-8' // optional
+    }
 */
 const reqTimeRange = function(rangeSpec) {
     let endDate = null;
@@ -359,7 +359,8 @@ const reqTimeRange = function(rangeSpec) {
         throw new Error('end date is not after start date');
     }
     // return a string: 'startDate=...&endDate=...'
-    return `startDate=${startDate.toISOString().substring(0,19)+'Z'}&endDate=${endDate.toISOString().substring(0,19)+'Z'}`;
+    return `startDate=${encodeURIComponent(startDate.toISOString().substring(0,19)+'Z')}&`+
+           `endDate=${encodeURIComponent(endDate.toISOString().substring(0,19)+'Z')}`;
 }
 
 const readline = require('readline');
@@ -388,7 +389,7 @@ function diffObjects(a, b) {
 }
 
 async function getCustomer(customerId, o) {
-    console.log('Getting Customer Info ...');
+    console.log(`Getting Info of Customer ${customerId}...`);
     const options = buildAuth(null, o); // use the default server info from setServerInfo()
     options.path = `/ngadmin/customers/${customerId}`;
     const customer = await callServer(options);
@@ -402,31 +403,83 @@ function buildQueryParams(o, paramList) {
         for (let p of paramList) {
             if (o[p]) {
                 if (Array.isArray(o[p])) {
-                    let commaList = o[p].join(',');
+                    let commaList = o[p].map(encodeURIComponent).join(',');
                     qs.push(`${p}=${commaList}`);
                 } else
-                    qs.push(`${p}=${o[p]}`);
+                    qs.push(`${p}=${encodeURIComponent(o[p])}`);
             }
         }
         if (o.end || o.start || o.span || o.center) {
             qs.push(reqTimeRange(o));
         }
     }
-    return qs;
+    if (qs.length > 0) {
+        // return url encoded query string
+        return '?' + qs.join('&');
+    }
+    return '';
 }
 
 async function listCustomers(o) {
     console.log('Getting Customer List ...');
     const options = buildAuth(null, o); // use the default server info from setServerInfo()
     options.path = `/ngadmin/customers`;
+    // parameters supported by this endpoint
     const paramList = ['search','status','type','parentId','email',
                        'ids','regionalOffices','products'];
-    let qs = buildQueryParams(o, paramList);
-    if (qs.length > 0) {
-        options.path += '?'+qs.join('&');
-    }
+    options.path += buildQueryParams(o, paramList);
     const customer = await callServer(options);
     return customer.obj;
+}
+
+async function getPropertyVersion(id_or_domain, ver, o) {
+    let isDomain = id_or_domain.indexOf('.') > 0;
+    let id = id_or_domain;
+    let verN = ver;
+    if (isDomain) {
+        if (verN == null) {
+            verN = 'production'; // for domain name, default to production
+        } else if (verN !== 'production' && verN !== 'staging') {
+            throw new Error('version must be production or staging');
+        }
+    }
+    let msg = `Getting Property ${id_or_domain} ` + (ver ? `version ${ver} ` : '') + '...';
+    console.log(msg);
+    const options = buildAuth(null, o); // use the default server info from setServerInfo()
+    if (isDomain || verN === 'production' || verN === 'staging') {
+        const pList = await listProperties({search:'^'+id_or_domain, target: verN, includeChildren:true});
+        if (pList.count === 0) {
+            throw new Error(`Property ${id_or_domain} not found in ${verN}`);
+        }
+        let p = pList.properties.filter(p => p.id === id_or_domain || p[verN+'Version'].hostnames.includes(id_or_domain));
+        if (p.length === 0) {
+            throw new Error(`Property ${id_or_domain} not found in ${verN}`);
+        }
+        if (p.length > 1) {
+            throw new Error(`Multiple properties with ${id_or_domain} found in ${verN}`);
+        }
+        id = p[0].id;
+        verN = p[0][verN+'Version'].version;
+    }
+    options.path = `/cdn/properties/${id}` + (ver ? `/versions/${verN}` : '');
+    // parameters supported by this endpoint
+    const customer = await callServer(options);
+    return customer.obj;
+}
+
+function getProperty(id_or_domain, o) {
+    return getPropertyVersion(id_or_domain, null, o);
+}
+
+async function listProperties(o) {
+    console.log('Getting Property List ...');
+    const options = buildAuth(null, o); // use the default server info from setServerInfo()
+    options.path = '/cdn/properties';
+    // parameters supported by this endpoint
+    const paramList = ['search','hasConfig','target','sortBy','sortOrder','tags','legacyType','isHcdn'];
+    options.path += buildQueryParams(o, paramList);
+    const serviceQuotaList = await callServer(options);
+    return serviceQuotaList.obj;
 }
 
 async function getServiceQuota(customerId, o) {
@@ -445,12 +498,10 @@ async function listServiceQuotas(o) {
     console.log('Getting Service Quota List ...');
     const options = buildAuth(null, o); // use the default server info from setServerInfo()
     options.path = '/cdn/serviceQuotas';
+    // parameters supported by this endpoint
     const paramList = ['search','status','allowProduction','usageLimit','contractId','allowedCacheDirectives',
                        'accountManagerEmail','advancedFeatures'];
-    let qs = buildQueryParams(o, paramList);
-    if (qs.length > 0) {
-        options.path += '?'+qs.join('&');
-    }
+    options.path += buildQueryParams(o, paramList);
     const serviceQuotaList = await callServer(options);
     return serviceQuotaList.obj;
 }
@@ -496,6 +547,9 @@ const cdnpro = {
     diffObjects: diffObjects,
     getCustomer: getCustomer,
     listCustomers: listCustomers,
+    getProperty: getProperty,
+    getPropertyVersion: getPropertyVersion,
+    listProperties: listProperties,
     getServiceQuota: getServiceQuota,
     listServiceQuotas: listServiceQuotas,
     patchServiceQuota: patchServiceQuota,
