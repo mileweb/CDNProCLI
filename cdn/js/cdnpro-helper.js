@@ -395,26 +395,33 @@ async function getCustomer(customerId, o) {
     return customer.obj;
 }
 
+function buildQueryParams(o, paramList) {
+    let qs = [];
+    if (o) {
+        paramList.push('limit','offset');
+        for (let p of paramList) {
+            if (o[p]) {
+                if (Array.isArray(o[p])) {
+                    let commaList = o[p].join(',');
+                    qs.push(`${p}=${commaList}`);
+                } else
+                    qs.push(`${p}=${o[p]}`);
+            }
+        }
+        if (o.end || o.start || o.span || o.center) {
+            qs.push(reqTimeRange(o));
+        }
+    }
+    return qs;
+}
+
 async function listCustomers(o) {
     console.log('Getting Customer List ...');
     const options = buildAuth(null, o); // use the default server info from setServerInfo()
     options.path = `/ngadmin/customers`;
-    let qs = [];
-    if (o) {
-        const paramList = ['search','status','limit','offset','type','parentId','email'];
-        for (let p of paramList) {
-            if (o[p]) {
-                qs.push(`${p}=${o[p]}`);
-            }
-        }
-        const arrParamList = ['ids','regionalOffices','products'];
-        for (let p of arrParamList) {
-            if (o[p]) {
-                let commaList = o[p].join(',');
-                qs.push(`${p}=${commaList}`);
-            }
-        }
-    }
+    const paramList = ['search','status','type','parentId','email',
+                       'ids','regionalOffices','products'];
+    let qs = buildQueryParams(o, paramList);
     if (qs.length > 0) {
         options.path += '?'+qs.join('&');
     }
@@ -438,16 +445,9 @@ async function listServiceQuotas(o) {
     console.log('Getting Service Quota List ...');
     const options = buildAuth(null, o); // use the default server info from setServerInfo()
     options.path = '/cdn/serviceQuotas';
-    let qs = [];
-    if (o) {
-        const paramList = ['search','status','allowProduction','usageLimit','contractId','allowedCacheDirectives',
-                            'accountManagerEmail','advancedFeatures','limit','offset'];
-        for (let p of paramList) {
-            if (o[p]) {
-                qs.push(`${p}=${o[p]}`);
-            }
-        }
-    }
+    const paramList = ['search','status','allowProduction','usageLimit','contractId','allowedCacheDirectives',
+                       'accountManagerEmail','advancedFeatures'];
+    let qs = buildQueryParams(o, paramList);
     if (qs.length > 0) {
         options.path += '?'+qs.join('&');
     }
