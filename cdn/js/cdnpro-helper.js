@@ -363,7 +363,7 @@ function diffObjects(a, b) {
     diff.forEach((part) => {
         let change = part.added ? '+' : part.removed ? '-' : null;
         if (change) {
-            diffTxt += change + part.value;
+            diffTxt += change + part.value.split('\n').slice(0,-1).join('\n'+change) + '\n';
         }
     });
     return diffTxt;
