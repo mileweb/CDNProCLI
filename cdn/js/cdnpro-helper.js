@@ -12,6 +12,12 @@ const setServerInfo = function(serverInfo) {
     serverSecret = serverInfo;
 }
 
+const REPORT_RANGES = {
+    SELF: 'self',
+    SELF_CHILDREN: 'self+children',
+    CHILDREN_ONLY: 'children-only'
+}
+
 const buildAuth = function(serverInfo, options) {
     serverInfo = serverInfo || serverSecret;
     if (serverInfo === null) {
@@ -35,7 +41,8 @@ const buildAuth = function(serverInfo, options) {
         'User-Agent': 'CDNProCLI-js/1.0'
       },
       timeout: 10000, //socket connection times out in 10 seconds
-      abortOnError: true  //abort if status code is not 200 or 201
+      abortOnError: true,  //abort if status code is not 200 or 201
+      quiet: true
     };
     if (options) {
         if (options.noCache === true) {
@@ -43,6 +50,17 @@ const buildAuth = function(serverInfo, options) {
         }
         if (options.includeChildren === true) {
             r.headers['Report-Range']='self+children';
+        }
+        if (options.reportRange) {
+            let rr = options.reportRange;
+            if (rr === 'self' || rr === 'self+children' || rr === 'children-only') {
+                r.headers['Report-Range']=rr;
+            } else {
+                throw new Error(`reportRange '${rr}' is not recognized`);
+            }
+        }
+        if (options.onBehalfOf) {
+            r.headers['On-Behalf-Of']=options.onBehalfOf;
         }
         if (options.quiet != null) {
             r.quiet = options.quiet;
@@ -373,7 +391,6 @@ async function getCustomer(customerId, o) {
     console.log('Getting Customer Info ...');
     const options = buildAuth(null, o); // use the default server info from setServerInfo()
     options.path = `/ngadmin/customers/${customerId}`;
-    options.quiet = true;
     const customer = await callServer(options);
     return customer.obj;
 }
@@ -401,22 +418,30 @@ async function listCustomers(o) {
     if (qs.length > 0) {
         options.path += '?'+qs.join('&');
     }
-    options.quiet = true;
     const customer = await callServer(options);
     return customer.obj;
 }
 
 async function getServiceQuota(customerId, o) {
+    if (customerId == null) {
+        throw new Error('customerId is not defined');
+    }
     console.log('Getting Service Quota ...');
     const options = buildAuth(null, o); // use the default server info from setServerInfo()
+    options.path = `/cdn/serviceQuotas/customer/${customerId}`;
+    const serviceQuota = await callServer(options);
+    //console.log('Service Quota:', serviceQuota.obj);
+    return serviceQuota.obj;
+}
+
+async function listServiceQuotas(o) {
+    console.log('Getting Service Quota List ...');
+    const options = buildAuth(null, o); // use the default server info from setServerInfo()
     options.path = '/cdn/serviceQuotas';
-    if (customerId) {
-        options.path += `/customer/${customerId}`;
-    }
     let qs = [];
     if (o) {
         const paramList = ['search','status','allowProduction','usageLimit','contractId','allowedCacheDirectives',
-                           'accountManagerEmail','advancedFeatures','limit','offset'];
+                            'accountManagerEmail','advancedFeatures','limit','offset'];
         for (let p of paramList) {
             if (o[p]) {
                 qs.push(`${p}=${o[p]}`);
@@ -426,14 +451,8 @@ async function getServiceQuota(customerId, o) {
     if (qs.length > 0) {
         options.path += '?'+qs.join('&');
     }
-    options.quiet = true;
-    const serviceQuota = await callServer(options);
-    //console.log('Service Quota:', serviceQuota.obj);
-    return serviceQuota.obj;
-}
-
-async function listServiceQuotas(o) {
-    return getServiceQuota(null, o);
+    const serviceQuotaList = await callServer(options);
+    return serviceQuotaList.obj;
 }
 
 async function patchServiceQuota(serviceQuotaId, obj) {
@@ -443,7 +462,6 @@ async function patchServiceQuota(serviceQuotaId, obj) {
     options.method = 'PATCH';
     options.headers['Content-Type']='application/json; charset=UTF-8';
     options.reqBody = JSON.stringify(obj);
-    options.quiet = true;
     const serviceQuota = await callServer(options);
     return serviceQuota.obj;
 }
@@ -452,7 +470,6 @@ async function getSystemConfigs(o) {
     console.log('Getting systemConfigs ...');
     const options = buildAuth(null, o); // use the default server info from setServerInfo()
     options.path = `/cdn/systemConfigs`;
-    options.quiet = true;
     const apiResp = await callServer(options);
     //console.log('systemConfigs:', apiResp.obj);
     return apiResp.obj;
@@ -465,13 +482,13 @@ async function patchSystemConfigs(obj) {
     options.method = 'PATCH';
     options.headers['Content-Type']='application/json; charset=UTF-8';
     options.reqBody = JSON.stringify(obj);
-    options.quiet = true;
     const systemConfig = await callServer(options);
     return systemConfig.obj;
 }
 
 const cdnpro = {
     setServerInfo: setServerInfo,
+    REPORT_RANGES: REPORT_RANGES,
     buildAuth: buildAuth,
     callServer: callServer,
     reqTimeRange: reqTimeRange,

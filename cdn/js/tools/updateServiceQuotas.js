@@ -28,7 +28,8 @@ async function main() {
     cdnpro.setServerInfo(cred.cdnPro);
     const customer = await cdnpro.getCustomer(customerId);
     // copy a few fields to the customerInfo object
-    const customerInfo = {id:customer.customerId, name:customer.name, responsiblePerson:customer.responsiblePerson};
+    const customerInfo = {id:customer.customerId, name:customer.name,
+        responsiblePerson:customer.responsiblePerson, parentId:customer.configs.parentId};
     console.log('Customer Info:', customerInfo);
     // ask for confirmation from console. Continue if yes, exit if no.
     let answer = await cdnpro.askQuestion('Continue? (y/n):');
@@ -37,6 +38,10 @@ async function main() {
         process.exit(0);
     }
     const sq = await cdnpro.getServiceQuota(customerId);
+    let psq = null;
+    if (customerInfo.parentId) {
+        psq = await cdnpro.getServiceQuota(customerInfo.parentId);
+    }
     const sc = await cdnpro.getSystemConfigs();
     const patchObj = {};
     /*
@@ -47,7 +52,7 @@ async function main() {
             if action is deleteDirective, check if the directives are in the serviceQuota
             throw error if any directive is not in the serviceQuota
     */
-    const updateAllowedDirectives = function() {
+    const updateAllowedDirectives = async function() {
         patchObj.allowedCacheDirectives = Array.from(sq.allowedCacheDirectives);
         // check if sq.allowedCacheDirectives includes the data
         if (action === 'addDirective') {
@@ -64,6 +69,10 @@ async function main() {
                     console.error(`Error: '${d}' is NOT a valid advanced directive in the systemConfig`);
                     process.exit(1);
                 }
+                if (psq && !psq.allowedCacheDirectives.includes(d)) {
+                    console.error(`Error: '${d}' is NOT in the parent (id=${customerInfo.parentId}) serviceQuota. Add it to there first.`);
+                    process.exit(1);
+                }
                 patchObj.allowedCacheDirectives.push(d);
             }
         } else if (action === 'deleteDirective') {
@@ -71,6 +80,18 @@ async function main() {
                 if (!patchObj.allowedCacheDirectives.includes(d)) {
                     console.error(`Error: '${d}' is NOT in the serviceQuota`);
                     process.exit(1);
+                }
+                if (customer.configs.type !== 'regular') {
+                    const childSQList = await cdnpro.listServiceQuotas({onBehalfOf:customerId,
+                                                                        allowedCacheDirectives:d,
+                                                                        reportRange:cdnpro.REPORT_RANGES.CHILDREN_ONLY});
+                    if (childSQList.count > 0) {
+                        const children = await cdnpro.listCustomers({ids:childSQList.serviceQuotaList.map(x => x.customerId)});
+                        console.error(`Error: '${d}' is in ${childSQList.count} child serviceQuotas. Here is the list:`);
+                        console.error(children.customers.map(c => {return {customerId:c.customerId, name:c.name, parent:c.parentId}}));
+                        console.error('Please remove the directive from the child serviceQuotas first.');
+                        process.exit(1);
+                    }
                 }
                 // remove the directive from the serviceQuota
                 patchObj.allowedCacheDirectives = patchObj.allowedCacheDirectives.filter(x => x !== d);
@@ -89,7 +110,7 @@ async function main() {
         console.log(`Items after the change: ${patchObj.allowedCacheDirectives.length}`);
     } // end of updateAllowedDirectives()
     if (action === 'addDirective' || action === 'deleteDirective') {
-        updateAllowedDirectives();
+        await updateAllowedDirectives();
     }
     // step 3: ask user to confirm the action
     answer = await cdnpro.askQuestion('Continue with the change? (y/n):');

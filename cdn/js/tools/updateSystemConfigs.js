@@ -67,7 +67,7 @@ async function main() {
                 const cids = svcQuotas.serviceQuotaList.map(x => x.customerId);
                 const result = await cdnpro.listCustomers({ids:cids});
                 console.error(`Error: '${d}' is in ${svcQuotas.count} serviceQuotas. Here is the customer list:`);
-                console.error(result.customers.map(c => {return {customerId:c.customerId, name:c.name}} ));
+                console.error(result.customers.map(c => {return {customerId:c.customerId, name:c.name, parent:c.parentId}} ));
                 console.error('Please remove the directive from the serviceQuotas first.');
                 console.error(`For example, you cann call 'node updateServiceQuotas.js ${cids[0]} deleteDirective ${d}'`);
                 process.exit(1);
