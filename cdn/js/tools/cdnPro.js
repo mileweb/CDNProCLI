@@ -1,4 +1,4 @@
-const { buildAuth, callServer, cdnpro } = require('../cdnpro-helper');
+const { cdnpro } = require('../cdnpro-helper');
 const path = require('path');
 const { cred } = require('../SECRET_credentials');
 

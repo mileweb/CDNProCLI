@@ -1,8 +1,11 @@
 const { cdnpro } = require('../cdnpro-helper');
 const { cred } = require('../SECRET_credentials');
+const path = require('path');
 
 function usage() {
-    const scriptName = process.argv[1];
+    const absPath = process.argv[1];
+    const relPath = path.relative(process.cwd(), absPath);
+    const scriptName = absPath.length <= relPath.length ? absPath : relPath;
     console.log(`Usage: node ${scriptName} action data`);
     console.log('  action: one of addBaseDirectives, deleteBaseDirectives');
     console.log('                 addAdvancedDirectives, deleteAdvancedDirectives');

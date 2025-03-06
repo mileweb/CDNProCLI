@@ -1,8 +1,11 @@
-const { buildAuth, callServer, cdnpro } = require('../cdnpro-helper');
+const { cdnpro } = require('../cdnpro-helper');
 const { cred } = require('../SECRET_credentials');
+const path = require('path');
 
 function usage() {
-    const scriptName = process.argv[1];
+    const absPath = process.argv[1];
+    const relPath = path.relative(process.cwd(), absPath);
+    const scriptName = absPath.length <= relPath.length ? absPath : relPath;
     console.log(`Usage: node ${scriptName} customerId action data`);
     console.log('  customerId: the customer ID');
     console.log('  action: one of addDirective, deleteDirective');
