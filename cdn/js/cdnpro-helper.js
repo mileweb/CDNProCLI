@@ -392,6 +392,9 @@ async function getCustomer(customerId, o) {
     if (customerId === '--help') {
         return {usage: 'getCustomer customerId', minArgs: 1, maxArgs: 1};
     }
+    if (Array.isArray(customerId) && o == null) { // support passing arguments as an array
+        customerId = customerId[0];
+    }
     console.log(`Getting Info of Customer ${customerId}...`);
     const options = buildAuth(null, o); // use the default server info from setServerInfo()
     options.path = `/ngadmin/customers/${customerId}`;
@@ -439,6 +442,10 @@ async function getPropertyVersion(id_or_domain, ver, o) {
     if (id_or_domain === '--help') {
         return {usage: 'getPropertyVersion id_or_domain production/staging/latest/number', minArgs: 2, maxArgs: 2};
     }
+    if (Array.isArray(id_or_domain) && ver == null && o == null) { // support passing arguments as an array
+        ver = id_or_domain[1];
+        id_or_domain = id_or_domain[0];
+    }
     let isDomain = id_or_domain.indexOf('.') > 0;
     let id = id_or_domain;
     let verN = ver;
@@ -478,6 +485,9 @@ function getProperty(id_or_domain, o) {
     if (id_or_domain === '--help') {
         return {usage: 'getProperty id_or_domain', minArgs: 1, maxArgs: 1};
     }
+    if (Array.isArray(id_or_domain) && o == null) { // support passing arguments as an array
+        id_or_domain = id_or_domain[0];
+    }
     return getPropertyVersion(id_or_domain, null, o);
 }
 
@@ -495,6 +505,9 @@ async function listProperties(o) {
 async function getServiceQuota(customerId, o) {
     if (customerId === '--help') {
         return {usage: 'getServiceQuota customerId', minArgs: 1, maxArgs: 1};
+    }
+    if (Array.isArray(customerId) && o == null) { // support passing arguments as an array
+        customerId = customerId[0];
     }
     if (customerId == null) {
         throw new Error('customerId is not defined');

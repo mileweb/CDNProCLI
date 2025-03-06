@@ -30,19 +30,12 @@ async function main() {
     cdnpro.setServerInfo(cred.cdnPro);
     const funcHelp = await cdnpro[func]('--help');
     let result = null;
-    if (funcHelp.minArgs == 0)
-        result = await cdnpro[func]();
-    else if (funcHelp.minArgs == 1)
-        result = await cdnpro[func](process.argv[3]);
-    else if (funcHelp.minArgs == 2)
-        result = await cdnpro[func](process.argv[3], process.argv[4]);
-    else if (funcHelp.minArgs == 3)
-        result = await cdnpro[func](process.argv[3], process.argv[4], process.argv[5]);
-    else {
-        console.error('Error: function', func, 'needs too many arguments');
-        await usage();
+    if (process.argv.length < funcHelp.minArgs + 3) {
+        console.error('Error: function', func, `needs at least ${funcHelp.minArgs} argument:`);
+        console.error(funcHelp.usage);
         process.exit(1);
     }
+    result = await cdnpro[func](process.argv.slice(3, 3+funcHelp.maxArgs));
     console.log(result);
     process.exit(0);
 }
