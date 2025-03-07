@@ -428,6 +428,12 @@ function buildQueryParams(o, paramList) {
 }
 
 async function listCustomers(o) {
+    if (o === '--help') {
+        return {usage: 'listCustomers', minArgs: 0, maxArgs: 0};
+    }
+    if (o && o.argv) { // support passing arguments as an array
+        o = o.options;
+    }
     console.log('Getting Customer List ...');
     const options = buildAuth(null, o); // use the default server info from setServerInfo()
     options.path = `/ngadmin/customers`;
@@ -495,6 +501,12 @@ function getProperty(id_or_domain, o) {
 }
 
 async function listProperties(o) {
+    if (o === '--help') {
+        return {usage: 'listProperties', minArgs: 0, maxArgs: 0};
+    }
+    if (o && o.argv) { // support passing arguments as an array
+        o = o.options;
+    }
     console.log('Getting Property List ...');
     const options = buildAuth(null, o); // use the default server info from setServerInfo()
     options.path = '/cdn/properties';
@@ -525,6 +537,12 @@ async function getServiceQuota(customerId, o) {
 }
 
 async function listServiceQuotas(o) {
+    if (o === '--help') {
+        return {usage: 'listServiceQuotas', minArgs: 0, maxArgs: 0};
+    }
+    if (o && o.argv) { // support passing arguments as an array
+        o = o.options;
+    }
     console.log('Getting Service Quota List ...');
     const options = buildAuth(null, o); // use the default server info from setServerInfo()
     options.path = '/cdn/serviceQuotas';

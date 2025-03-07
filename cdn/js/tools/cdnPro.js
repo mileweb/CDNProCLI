@@ -8,7 +8,7 @@ async function usage() {
     const scriptName = absPath.length <= relPath.length ? absPath : relPath;
     console.log(`Usage:`);
     for (let f in cdnpro) {
-        if (typeof cdnpro[f] === 'function' && f.startsWith('get')) {
+        if (typeof cdnpro[f] === 'function' && (f.startsWith('get')||f.startsWith('list'))) {
             let help = await cdnpro[f]('--help');
             console.log(`node ${scriptName}`, help.usage);
         }
@@ -22,7 +22,7 @@ async function main() {
         process.exit(1);
     }
     const func = process.argv[2];
-    if (!cdnpro[func] || typeof cdnpro[func] !== 'function' || !func.startsWith('get')) {
+    if (!cdnpro[func] || typeof cdnpro[func] !== 'function' || (!func.startsWith('get')&&!func.startsWith('list'))) {
         console.error('Error: function', func, 'not found');
         await usage();
         process.exit(1);
@@ -39,9 +39,15 @@ async function main() {
             options.onBehalfOf = parseInt(o.substring(2));
         } else if (o === '-d' || o === '--debug') {
             options.debug = true;
+        } else if (o.startsWith('-l=')) { //limit
+            options.limit = parseInt(o.substring(3));
         } else if (o.startsWith('-l')) { // time range of the last n sec/min/hour/day
             options.end = 'now';
             options.span = o.substring(2);
+        } else if (o.startsWith('-o=')) { // offset
+            options.offset = parseInt(o.substring(3));
+        } else if (o.startsWith('-search=')) {
+            options.search = o.substring(8);
         } else {
             console.error('Error: unknown option', o);
             process.exit(1);
