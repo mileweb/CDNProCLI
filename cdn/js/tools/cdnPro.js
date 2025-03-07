@@ -27,15 +27,35 @@ async function main() {
         await usage();
         process.exit(1);
     }
+    const argv = process.argv.slice(3).filter(a => !a.startsWith('-'));
+    const cmdOpt = process.argv.slice(3).filter(a => a.startsWith('-'));
+    let options = {};
+    cmdOpt.forEach(async(o) => {
+        if (o === '-nocache') {
+            options.noCache = true;
+        } else if (o === '-A') {
+            options.includeChildren = true;
+        } else if (o.startsWith('-i')) {
+            options.onBehalfOf = parseInt(o.substring(2));
+        } else if (o === '-d' || o === '--debug') {
+            options.debug = true;
+        } else if (o.startsWith('-l')) { // time range of the last n sec/min/hour/day
+            options.end = 'now';
+            options.span = o.substring(2);
+        } else {
+            console.error('Error: unknown option', o);
+            process.exit(1);
+        }
+    });
     cdnpro.setServerInfo(cred.cdnPro);
     const funcHelp = await cdnpro[func]('--help');
     let result = null;
-    if (process.argv.length < funcHelp.minArgs + 3) {
+    if (argv.length < funcHelp.minArgs) {
         console.error('Error: function', func, `needs at least ${funcHelp.minArgs} argument:`);
         console.error(funcHelp.usage);
         process.exit(1);
     }
-    result = await cdnpro[func](process.argv.slice(3, 3+funcHelp.maxArgs));
+    result = await cdnpro[func]({argv:argv.slice(0, funcHelp.maxArgs), options});
     console.log(result);
     process.exit(0);
 }
