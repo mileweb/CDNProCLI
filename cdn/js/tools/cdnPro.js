@@ -29,10 +29,14 @@ async function main() {
     }
     const argv = process.argv.slice(3).filter(a => !a.startsWith('-'));
     const cmdOpt = process.argv.slice(3).filter(a => a.startsWith('-'));
-    let options = {};
-    cmdOpt.forEach(async(o) => {
+    let options = {verbose: 0};
+    for (let o of cmdOpt) {
         if (o === '-nocache') {
             options.noCache = true;
+        } else if (o.startsWith('-v=')) {
+            options.verbose = parseInt(o.substring(3));
+        } else if (o === '-v') {
+            options.verbose = 1;
         } else if (o === '-A') {
             options.includeChildren = true;
         } else if (o.startsWith('-i')) {
@@ -46,13 +50,22 @@ async function main() {
             options.span = o.substring(2);
         } else if (o.startsWith('-o=')) { // offset
             options.offset = parseInt(o.substring(3));
+        } else if (o.startsWith('-type=')) { // type
+            options.type = o.substring(6);
+            if (options.type.startsWith('5')) {
+                options.type = 'fiveminutes';
+            }
         } else if (o.startsWith('-search=')) {
             options.search = o.substring(8);
+        } else if (o.startsWith('-hasConfig=')) {
+            options.hasConfig = o.substring(11);
+        } else if (o.startsWith('-target=')) {
+            options.target = o.substring(8);
         } else {
             console.error('Error: unknown option', o);
             process.exit(1);
         }
-    });
+    };
     cdnpro.setServerInfo(cred.cdnPro);
     const funcHelp = await cdnpro[func]('--help');
     let result = null;

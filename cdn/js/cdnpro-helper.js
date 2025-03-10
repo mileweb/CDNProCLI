@@ -13,7 +13,7 @@ const setServerInfo = function(serverInfo) {
 }
 
 const REPORT_RANGES = {
-    SELF: 'self',
+    SELF: 'self-only',
     SELF_CHILDREN: 'self+children',
     CHILDREN_ONLY: 'children-only'
 }
@@ -42,7 +42,7 @@ const buildAuth = function(serverInfo, options) {
       },
       timeout: 10000, //socket connection times out in 10 seconds
       abortOnError: true,  //abort if status code is not 200 or 201
-      quiet: true
+      verbose: 0,
     };
     if (options) {
         if (options.noCache === true) {
@@ -53,7 +53,7 @@ const buildAuth = function(serverInfo, options) {
         }
         if (options.reportRange) {
             let rr = options.reportRange;
-            if (rr === 'self' || rr === 'self+children' || rr === 'children-only') {
+            if (rr === 'self-only' || rr === 'self+children' || rr === 'children-only') {
                 r.headers['Report-Range']=rr;
             } else {
                 throw new Error(`reportRange '${rr}' is not recognized`);
@@ -62,14 +62,14 @@ const buildAuth = function(serverInfo, options) {
         if (options.onBehalfOf) {
             r.headers['On-Behalf-Of']=options.onBehalfOf;
         }
-        if (options.quiet != null) {
-            r.quiet = options.quiet;
-        }
         if (options.debug != null) {
             r.headers['x-debug']=options.debug;
         }
         if (options.abortOnError != null) {
             r.abortOnError = options.abortOnError;
+        }
+        if (options.verbose != null) {
+            r.verbose = options.verbose;
         }
     }
     return r;
@@ -85,7 +85,7 @@ const buildAuth = function(serverInfo, options) {
     *   scheme: 'http' or 'https',
     *   agentOptions: { lookup: (hostname, options, callback) => {} },
     *   debug: true or false,
-    *   quiet: true or false,
+    *   verbose: 0-5,
     *   ctx: { any: 'data' },
     *   abortOnError: true or false
     * }
@@ -107,6 +107,7 @@ const callServer = function(options, proc) {
 
     let scheme = https;
     if (options.scheme === 'http') scheme = http;
+    else options.scheme = 'https';
 
     // to override DNS to always resolve to a certain IP address:
     // agentOptions:{lookup:(h,o,c)=>{c(null,'58.220.72.220',4);}}
@@ -116,6 +117,12 @@ const callServer = function(options, proc) {
         options.lookup = options.agentOptions.lookup;
     }
     options.agent = new scheme.Agent(options);
+
+    if (options.verbose > 1) {
+        console.log(options.method, options.scheme+'//'+options.hostname+options.path);
+        console.log(options.headers);
+        if (body) console.log(body, '\n');
+    }
 
     const requestAndProc = function(resolve, reject) {
         let request = scheme.request(options, (res) => {
@@ -129,7 +136,7 @@ const callServer = function(options, proc) {
                 console.log(stringify(res));
             }
             if (res.statusCode !== 200 && res.statusCode !== 201) {
-                if (options.quiet !== true) {
+                if (options.verbose > 0) {
                     console.error(`Did not get an OK from the server, Code: ${res.statusCode}`);
                     console.error(`${options.method} ${options.host}${options.path}`);
                     console.error('Response Headers', res.headers);
@@ -163,10 +170,10 @@ const callServer = function(options, proc) {
                 ctx.bodyBytes={raw:len, decoded:data.length};
                 let statusOk = res.statusCode === 200 || res.statusCode === 201;
 
-                if (options.quiet !== true) {
+                if (options.verbose > 0) {
                     const headerSec = (hdrTime - stime)/1000;
                     const totalSec = (resTime - stime)/1000;
-                    console.log(`hdrTime ${headerSec}s, total ${totalSec}s, got status ${res.statusCode} w/ ${len} => ${data.length} bytes from `+ options.host+options.path);
+                    console.log(`hdrTime ${headerSec}s, total ${totalSec}s, got status ${res.statusCode} w/ ${len} => ${data.length} bytes from `+ options.hostname+options.path);
                 }
                 const callBack = function(obj) {
                     if (statusOk || options.abortOnError !== true) {
@@ -209,7 +216,7 @@ const callServer = function(options, proc) {
         });
 
         request.on('error', (err) => {
-            if (options.quiet !== true) {
+            if (options.verbose > 0) {
                 console.error('Request to '+options.host+options.path+` got error:\n${err.message}`);
             }
             if (reject) {
@@ -241,7 +248,7 @@ const callServer = function(options, proc) {
         });
 
         request.setTimeout(30000, () => {
-            if (options.quiet !== true) {
+            if (options.verbose > 0) {
                 console.error('Request to '+options.host+options.path+' timed out after 30 seconds.');
             }
             if (reject) {
@@ -396,7 +403,9 @@ async function getCustomer(customerId, o) {
         o = customerId.options;
         customerId = customerId.argv[0];
     }
-    console.log(`Getting Info of Customer ${customerId}...`);
+    if (o.verbose > 0) {
+        console.log(`Getting Info of Customer ${customerId}...`);
+    }
     const options = buildAuth(null, o); // use the default server info from setServerInfo()
     options.path = `/ngadmin/customers/${customerId}`;
     const customer = await callServer(options);
@@ -434,7 +443,9 @@ async function listCustomers(o) {
     if (o && o.argv) { // support passing arguments as an array
         o = o.options;
     }
-    console.log('Getting Customer List ...');
+    if (o.verbose > 0) {
+        console.log('Getting Customer List ...');
+    }
     const options = buildAuth(null, o); // use the default server info from setServerInfo()
     options.path = `/ngadmin/customers`;
     // parameters supported by this endpoint
@@ -464,8 +475,10 @@ async function getPropertyVersion(id_or_domain, ver, o) {
             throw new Error('version must be production or staging');
         }
     }
-    let msg = `Getting Property ${id_or_domain} ` + (ver ? `version ${ver} ` : '') + '...';
-    console.log(msg);
+    if (o.verbose > 0) {
+        let msg = `Getting Property ${id_or_domain} ` + (ver ? `version ${ver} ` : '') + '...';
+        console.log(msg);
+    }
     const options = buildAuth(null, o); // use the default server info from setServerInfo()
     if (isDomain || verN === 'production' || verN === 'staging') {
         const pList = await listProperties({search:'^'+id_or_domain, target: verN, includeChildren:true});
@@ -497,6 +510,9 @@ function getProperty(id_or_domain, o) {
         o = id_or_domain.options;
         id_or_domain = id_or_domain.argv[0];
     }
+    if (o.verbose > 0) {
+        console.log(`Getting Property ${id_or_domain} ...`);
+    }
     return getPropertyVersion(id_or_domain, null, o);
 }
 
@@ -507,7 +523,9 @@ async function listProperties(o) {
     if (o && o.argv) { // support passing arguments as an array
         o = o.options;
     }
-    console.log('Getting Property List ...');
+    if (o.verbose > 0) {
+        console.log('Getting Property List ...');
+    }
     const options = buildAuth(null, o); // use the default server info from setServerInfo()
     options.path = '/cdn/properties';
     // parameters supported by this endpoint
@@ -528,7 +546,9 @@ async function getServiceQuota(customerId, o) {
     if (customerId == null) {
         throw new Error('customerId is not defined');
     }
-    console.log('Getting Service Quota ...');
+    if (o.verbose > 0) {
+        console.log('Getting Service Quota ...');
+    }
     const options = buildAuth(null, o); // use the default server info from setServerInfo()
     options.path = `/cdn/serviceQuotas/customer/${customerId}`;
     const serviceQuota = await callServer(options);
@@ -543,7 +563,9 @@ async function listServiceQuotas(o) {
     if (o && o.argv) { // support passing arguments as an array
         o = o.options;
     }
-    console.log('Getting Service Quota List ...');
+    if (o.verbose > 0) {
+        console.log('Getting Service Quota List ...');
+    }
     const options = buildAuth(null, o); // use the default server info from setServerInfo()
     options.path = '/cdn/serviceQuotas';
     // parameters supported by this endpoint
@@ -572,7 +594,9 @@ async function getSystemConfigs(o) {
     if (o && o.argv) { // support passing arguments as an array
         o = o.options;
     }
-    console.log('Getting systemConfigs ...');
+    if (o.verbose > 0) {
+        console.log('Getting systemConfigs ...');
+    }
     const options = buildAuth(null, o); // use the default server info from setServerInfo()
     options.path = `/cdn/systemConfigs`;
     const apiResp = await callServer(options);
@@ -589,6 +613,33 @@ async function patchSystemConfigs(obj) {
     options.reqBody = JSON.stringify(obj);
     const systemConfig = await callServer(options);
     return systemConfig.obj;
+}
+
+async function getBandwidth(customerId, o) {
+    if (customerId === '--help') {
+        return {usage: 'getBandwidth customerId', minArgs: 1, maxArgs: 1};
+    }
+    if (customerId && customerId.argv) { // support passing arguments as an array
+        o = customerId.options;
+        customerId = customerId.argv[0];
+    }
+    if (customerId == null) {
+        throw new Error('customerId is not defined');
+    }
+    o.onBehalfOf = customerId;
+    if (o.verbose > 0) {
+        console.log('Getting Bandwidth of customer ${customerId} ...');
+    }
+    const options = buildAuth(null, o); // use the default server info from setServerInfo()
+    options.path = `/cdn/report/bandwidth`;
+    const paramList = ['type'];
+    options.path += buildQueryParams(o, paramList);
+    options.method = 'POST';
+    options.reqBody = '{}';
+    options.headers['Content-Type']='application/json; charset=UTF-8';
+
+    const bandwidth = await callServer(options);
+    return bandwidth.obj;
 }
 
 const cdnpro = {
@@ -608,6 +659,7 @@ const cdnpro = {
     listServiceQuotas: listServiceQuotas,
     patchServiceQuota: patchServiceQuota,
     getSystemConfigs: getSystemConfigs,
+    getBandwidth: getBandwidth,
     patchSystemConfigs: patchSystemConfigs
 }
 
