@@ -79,8 +79,12 @@ It then validates and deploys the vew versions to production.
  4. (deploy) deploy the new versions in a batch. Right before the deployment, make sure the 
     deployed version is not changed
 
-Usage: node batchUpdateProperties.js taskName find|check|new|deploy
+Usage:
+```bash
+node batchUpdateProperties.js taskName find|check|new|deploy
     taskName: the name of the taskConfig file
+Example: node tools/batchUpdateProperties.js tools/batchTask find
+```
 
 Consult the [batchTask.template.js](tools/batchTask.template.js) for the taskConfig format.
 
