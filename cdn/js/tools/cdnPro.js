@@ -10,7 +10,7 @@ async function usage() {
     for (let f in cdnpro) {
         if (typeof cdnpro[f] === 'function' && (f.startsWith('get')||f.startsWith('list'))) {
             let help = await cdnpro[f]('--help');
-            console.log(`node ${scriptName}`, help.usage);
+            console.log(`node ${scriptName} ${f}`, help.usage);
         }
     }
     console.log('Example: node', scriptName, 'getCustomer', '123');
@@ -27,7 +27,7 @@ async function main() {
         await usage();
         process.exit(1);
     }
-    const argv = process.argv.slice(3).filter(a => !a.startsWith('-'));
+    let argv = process.argv.slice(3).filter(a => !a.startsWith('-'));
     const cmdOpt = process.argv.slice(3).filter(a => a.startsWith('-'));
     let options = {verbose: 0};
     for (let o of cmdOpt) {
@@ -45,6 +45,8 @@ async function main() {
             options.debug = true;
         } else if (o.startsWith('-l=')) { //limit
             options.limit = parseInt(o.substring(3));
+        } else if (o.startsWith('-limit=')) { //limit
+            options.limit = parseInt(o.substring(7));
         } else if (o.startsWith('-l')) { // time range of the last n sec/min/hour/day
             options.end = 'now';
             options.span = o.substring(2);
@@ -74,8 +76,15 @@ async function main() {
         console.error(funcHelp.usage);
         process.exit(1);
     }
-    result = await cdnpro[func]({argv:argv.slice(0, funcHelp.maxArgs), options});
-    console.log(result);
+    argv = argv.slice(0, funcHelp.maxArgs);
+    while (argv.length < funcHelp.maxArgs) {
+        argv.push(null);
+    }
+    argv.push(options);
+    result = await cdnpro[func].apply(null, argv);
+    if (options.verbose > 1)
+        console.log(JSON.stringify(result, null, 2));
+    else console.log(result);
     process.exit(0);
 }
 

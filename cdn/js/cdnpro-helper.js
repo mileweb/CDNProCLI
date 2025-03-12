@@ -386,10 +386,43 @@ function diffObjects(a, b) {
     const diff = Diff.diffJson(a, b);
 //    console.log('Diff:', diff);
     let diffTxt = '';
-    diff.forEach((part) => {
+    const colorText = (text, colorCode) => `\x1b[${colorCode}m${text}\x1b[0m`;
+    const shorten = (s) => {
+        if (s.length > 102) {
+            return s.substring(0,40)+
+                colorText('...'+(s.length-80)+' chars skipped...',36)+s.substring(s.length-40);
+        } else {
+            return s;
+        }
+    };
+    const skipLines = function (n) {
+        return colorText('...'+n+' lines skipped...\n', 36);
+    };
+    diff.forEach((part, ind) => {
         let change = part.added ? '+' : part.removed ? '-' : null;
-        if (change) {
-            diffTxt += change + part.value.split('\n').slice(0,-1).join('\n'+change) + '\n';
+        let lines = part.value.split('\n').slice(0,-1);
+        if (change === '+') {
+            diffTxt += colorText(change + lines.join('\n'+change) + '\n', 32);
+        } else if (change === '-') {
+            diffTxt += colorText(change + lines.join('\n'+change) + '\n', 31);
+        } else {
+            if (ind === 0) {
+                if (lines.length > 4) {
+                    diffTxt += skipLines(lines.length-3) + lines.slice(-3).map(shorten).join('\n') + '\n';
+                } else {
+                    diffTxt += lines.map(shorten).join('\n') + '\n';
+                }
+            } else if (ind === diff.length-1) {
+                if (lines.length > 4) {
+                    diffTxt += lines.slice(0,3).map(shorten).join('\n') + '\n'+skipLines(lines.length-3);
+                } else {
+                    diffTxt += lines.map(shorten).join('\n') + '\n';
+                }
+            } else if (lines.length > 6) {
+                diffTxt += lines.slice(0,3).map(shorten).join('\n') + '\n'+skipLines(lines.length-6) + lines.slice(-3).map(shorten).join('\n') + '\n'; 
+            } else {
+                diffTxt += lines.map(shorten).join('\n') + '\n';
+            }
         }
     });
     return diffTxt;
@@ -397,11 +430,7 @@ function diffObjects(a, b) {
 
 async function getCustomer(customerId, o) {
     if (customerId === '--help') {
-        return {usage: 'getCustomer customerId', minArgs: 1, maxArgs: 1};
-    }
-    if (customerId && customerId.argv) { // support passing arguments as an array
-        o = customerId.options;
-        customerId = customerId.argv[0];
+        return {usage: 'customerId', minArgs: 1, maxArgs: 1};
     }
     if (o.verbose > 0) {
         console.log(`Getting Info of Customer ${customerId}...`);
@@ -438,10 +467,7 @@ function buildQueryParams(o, paramList) {
 
 async function listCustomers(o) {
     if (o === '--help') {
-        return {usage: 'listCustomers', minArgs: 0, maxArgs: 0};
-    }
-    if (o && o.argv) { // support passing arguments as an array
-        o = o.options;
+        return {usage: '', minArgs: 0, maxArgs: 0};
     }
     if (o.verbose > 0) {
         console.log('Getting Customer List ...');
@@ -458,12 +484,7 @@ async function listCustomers(o) {
 
 async function getPropertyVersion(id_or_domain, ver, o) {
     if (id_or_domain === '--help') {
-        return {usage: 'getPropertyVersion id_or_domain production/staging/latest/number', minArgs: 2, maxArgs: 2};
-    }
-    if (id_or_domain && id_or_domain.argv) { // support passing arguments as an array
-        ver = id_or_domain.argv[1];
-        o = id_or_domain.options;
-        id_or_domain = id_or_domain.argv[0];
+        return {usage: 'id_or_domain production|staging|latest|number', minArgs: 2, maxArgs: 2};
     }
     let isDomain = id_or_domain.indexOf('.') > 0;
     let id = id_or_domain;
@@ -504,11 +525,7 @@ async function getPropertyVersion(id_or_domain, ver, o) {
 
 function getProperty(id_or_domain, o) {
     if (id_or_domain === '--help') {
-        return {usage: 'getProperty id_or_domain', minArgs: 1, maxArgs: 1};
-    }
-    if (id_or_domain && id_or_domain.argv) { // support passing arguments as an array
-        o = id_or_domain.options;
-        id_or_domain = id_or_domain.argv[0];
+        return {usage: 'id_or_domain', minArgs: 1, maxArgs: 1};
     }
     if (o.verbose > 0) {
         console.log(`Getting Property ${id_or_domain} ...`);
@@ -518,10 +535,7 @@ function getProperty(id_or_domain, o) {
 
 async function listProperties(o) {
     if (o === '--help') {
-        return {usage: 'listProperties', minArgs: 0, maxArgs: 0};
-    }
-    if (o && o.argv) { // support passing arguments as an array
-        o = o.options;
+        return {usage: '', minArgs: 0, maxArgs: 0};
     }
     if (o.verbose > 0) {
         console.log('Getting Property List ...');
@@ -537,11 +551,7 @@ async function listProperties(o) {
 
 async function getServiceQuota(customerId, o) {
     if (customerId === '--help') {
-        return {usage: 'getServiceQuota customerId', minArgs: 1, maxArgs: 1};
-    }
-    if (customerId && customerId.argv) { // support passing arguments as an array
-        o = customerId.options;
-        customerId = customerId.argv[0];
+        return {usage: 'customerId', minArgs: 1, maxArgs: 1};
     }
     if (customerId == null) {
         throw new Error('customerId is not defined');
@@ -558,10 +568,7 @@ async function getServiceQuota(customerId, o) {
 
 async function listServiceQuotas(o) {
     if (o === '--help') {
-        return {usage: 'listServiceQuotas', minArgs: 0, maxArgs: 0};
-    }
-    if (o && o.argv) { // support passing arguments as an array
-        o = o.options;
+        return {usage: '', minArgs: 0, maxArgs: 0};
     }
     if (o.verbose > 0) {
         console.log('Getting Service Quota List ...');
@@ -589,10 +596,7 @@ async function patchServiceQuota(serviceQuotaId, obj) {
 
 async function getSystemConfigs(o) {
     if (o === '--help') {
-        return {usage: 'getSystemConfigs', minArgs: 0, maxArgs: 0};
-    }
-    if (o && o.argv) { // support passing arguments as an array
-        o = o.options;
+        return {usage: '', minArgs: 0, maxArgs: 0};
     }
     if (o.verbose > 0) {
         console.log('Getting systemConfigs ...');
@@ -617,11 +621,7 @@ async function patchSystemConfigs(obj) {
 
 async function getBandwidth(customerId, o) {
     if (customerId === '--help') {
-        return {usage: 'getBandwidth customerId', minArgs: 1, maxArgs: 1};
-    }
-    if (customerId && customerId.argv) { // support passing arguments as an array
-        o = customerId.options;
-        customerId = customerId.argv[0];
+        return {usage: 'customerId', minArgs: 1, maxArgs: 1};
     }
     if (customerId == null) {
         throw new Error('customerId is not defined');
