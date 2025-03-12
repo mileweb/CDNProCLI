@@ -82,7 +82,7 @@ It then validates and deploys the vew versions to production.
 Usage: node batchUpdateProperties.js taskName find|check|new|deploy
     taskName: the name of the taskConfig file
 
-Consult the [batchTask.template.js](tools\batchTask.template.js) for the taskConfig format.
+Consult the [batchTask.template.js](tools/batchTask.template.js) for the taskConfig format.
 
 # Dependencies
 ## node.js
