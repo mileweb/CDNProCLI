@@ -1,26 +1,28 @@
 /*
- This is a collection of script that scans all the deployed property of a customer,
+ This is a tool scans all the production property of a customer,
  Find all the properties that meet a certain condition,
- Make a change of the deployed version, validate and deploy to (staging and) production.
- It takes the following steps in sequence:
- 1. (find) find all the currently deployed property and versions, save to a json file
- 2. (check) load each of them to see if the condition is met, save to the json file
- 3. (new) create new version, show diff to the current deployed version, validate
+ Create a new version based on the production version, validate and deploy to production.
+ The actual condition and new version creation are defined in the taskConfig, which is a js file.
+ To avoid mistakes, the tool is designed to run in 4 steps:
+ 1. (find) find a candidate list of currently deployed property and versions, save to a json DB file
+ 2. (check) load each of them to see if the condition is met
+ 3. (new) create new version, show diff to the current deployed version then validate
  4. (deploy) deploy the new versions in a batch. Right before the deployment, make sure the 
     deployed version is not changed
-    
-Usage: node batchUpdateProperties.js taskName find/check/new/deploy [dbName.json N]
+
+Usage: node batchUpdateProperties.js taskName find|check|new|deploy
     taskName: the name of the task, which is a js file in the same directory
-    find: find all the properties and save to dbName.json
-    N: number of properties to be processed in each step, default is 99999
+
+Consult the batchTask.template.js for the taskConfig format.
 */
 
 const fs = require('fs');
 const { cdnpro } = require('../cdnpro-helper');
 const { cred } = require('../SECRET_credentials');
-const { on } = require('events');
 const { resolve } = require('path');
-const { taskConfig } = require(process.argv[2]);
+//convert process.argv[2] from a relative path to an absolute path
+const taskFileName = resolve(process.cwd(), process.argv[2]);
+const { taskConfig } = require(taskFileName);
 
 //const testPV = JSON.parse(fs.readFileSync('pv.json')).configs;
 const stepName = process.argv[3];
@@ -96,7 +98,7 @@ async function main() {
     case 'deploy': await deployProperties(); break;
     case 'test': testConfig(); break;
     default : console.error('Wrong step name.');
-        console.error('Usage: node batchUpdateProperties.js task find/check/new/deploy [dbName.json number]');
+        console.error('Usage: node batchUpdateProperties.js task find|check|new|deploy');
         break;
     }
     process.exit(0);

@@ -34,7 +34,7 @@ node ./example.js
 You can study the example file [example.js](example.js) to learn the usage of of the library.
 
 # Tools
-There is currently 3 tools under the [tools](tools/) directory
+There is currently 4 tools under the [tools](tools/) directory
 ## cdnPro.js
 This tool helps you to view some CDN Pro resources, such as customer, service quota. Usage:
 ```bash
@@ -66,6 +66,23 @@ node tools/updateSystemConfigs.js action data
   data: directives separated by comma
 Example: node tools/updateSystemConfigs.js addExperimentalDirectives directive1,directive2
 ```
+## batchUpdateProperties.js
+This is a tool scans all the production property of a customer.
+It finds all properties that meet a certain condition and create a new version based on the production version.
+It then validates and deploys the vew versions to production.
+ The actual condition and new version creation are defined in the taskConfig, which is a js file.
+ To avoid mistakes, the tool is designed to run in 4 steps:
+
+ 1. (find) find a candidate list of currently deployed property and versions, save to a json DB file
+ 2. (check) load each of them to see if the condition is met
+ 3. (new) create new version, show diff to the current deployed version then validate
+ 4. (deploy) deploy the new versions in a batch. Right before the deployment, make sure the 
+    deployed version is not changed
+
+Usage: node batchUpdateProperties.js taskName find|check|new|deploy
+    taskName: the name of the taskConfig file
+
+Consult the [batchTask.template.js](tools\batchTask.template.js) for the taskConfig format.
 
 # Dependencies
 ## node.js
