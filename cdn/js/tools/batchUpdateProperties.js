@@ -1,10 +1,10 @@
 /*
- This is a tool scans all the production properties of a customer.
+ This is a tool that scans all the production properties of a customer.
  It finds all the properties that meet a certain condition,
  creates a new version based on the production version, validate and deploy to production.
  The actual condition and new version creation are defined in the taskConfig, which is a js file.
  To avoid mistakes, the tool is designed to run in 4 steps:
- 1. (find) find a candidate list of currently deployed property and versions, save to a json DB file
+ 1. (find) find a candidate list of the currently deployed properties, save to a json DB file
  2. (check) load each of candidate property version in production to make sure if the condition is met
  3. (new) generate the new version locally, show diff, get approval to create on server, then validate
  4. (deploy) deploy the validated new versions in batch. Right before the deployment, make sure the
