@@ -1,13 +1,13 @@
 /*
- This is a tool scans all the production property of a customer,
- Find all the properties that meet a certain condition,
- Create a new version based on the production version, validate and deploy to production.
+ This is a tool scans all the production properties of a customer.
+ It finds all the properties that meet a certain condition,
+ creates a new version based on the production version, validate and deploy to production.
  The actual condition and new version creation are defined in the taskConfig, which is a js file.
  To avoid mistakes, the tool is designed to run in 4 steps:
  1. (find) find a candidate list of currently deployed property and versions, save to a json DB file
- 2. (check) load each of them to see if the condition is met
- 3. (new) create new version, show diff to the current deployed version then validate
- 4. (deploy) deploy the new versions in a batch. Right before the deployment, make sure the 
+ 2. (check) load each of candidate property version in production to make sure if the condition is met
+ 3. (new) generate the new version locally, show diff, get approval to create on server, then validate
+ 4. (deploy) deploy the validated new versions in batch. Right before the deployment, make sure the
     deployed version is not changed
 
 Usage: node batchUpdateProperties.js taskName find|check|new|deploy
@@ -355,7 +355,7 @@ async function newProperties(concurrency, force) {
             }
             p.validId = newVNum;
             saveDB(`created validation id for property ${p.id} new version ${p.newVer}, saving to ${dbName}`);
-            setTimeout(checkValidationAsync, 25000, p);
+            setTimeout(checkValidationAsync, 30000, p);
         //check the validation status, release the semaphore when done
         } else {
             console.log(`found validation ID for property ${p.id} new version ${p.newVer} ...`);
@@ -392,7 +392,7 @@ async function checkValidationAsync(p) {
         if (!cdnpro.isWaitingQuestion()) { //avoid clusting the console
             console.log(`property ${p.id} new version ${p.newVer} validation is in progress ...`);
         }
-        setTimeout(checkValidationAsync, 5000, p);
+        setTimeout(checkValidationAsync, 10000, p);
     }else if (obj.status==='succeeded') {
         p.newVerValidated = true;
         console.log(`property ${p.id} new version ${p.newVer} validated!`);
@@ -453,6 +453,18 @@ async function deployProperties() {
             console.log('Aborted.');
             return;
         }
+        //double check no others deployed new versions
+        console.log('Double checking production versions ...');
+        const latestPropList = await cdnpro.listProperties({onBehalfOf:taskConfig.customerId,
+            includeChildren:taskConfig.includeChildren, target:'production', ids:pList.map(p=>p.id)});
+        for (let p of pList) {
+            let x = latestPropList.properties.find(y=>y.id==p.id);
+            if (x.productionVersion.version != p.prodVer) {
+                console.error(`Error: property ${p.id} has a new version ${x.productionVersion.version} in production, different from version ${p.prodVer} in the DB.`);
+                process.exit(1);
+            }
+        }
+        console.log('All properties are still at the same version in production.');
         //Create deployment task
         const ngOptions = cdnpro.buildAuth();
         ngOptions.method = 'POST';
@@ -490,7 +502,7 @@ async function deployProperties() {
         //check deployment status
         await sema.acquire();
         console.log('Checking deployment status ...');
-        setTimeout(checkDeploymentStatus, 20000, pList);
+        setTimeout(checkDeploymentStatus, 25000, pList);
     }
     await sema.allDone();
 }
@@ -506,7 +518,7 @@ async function checkDeploymentStatus(pList) {
     }
     if (obj.status === 'waiting' || obj.status === 'inprogress') {
         console.log(`deployment task ${pList[0].deploymentTaskId} is in progress ...`);
-        setTimeout(checkDeploymentStatus, 5000, pList);
+        setTimeout(checkDeploymentStatus, 10000, pList);
     } else if (obj.status === 'succeeded') {
         console.log(`deployment task ${pList[0].deploymentTaskId} succeeded!`);
         pList.forEach(p => p.newVerDeployed = true);
