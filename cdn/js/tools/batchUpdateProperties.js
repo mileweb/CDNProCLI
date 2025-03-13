@@ -215,7 +215,8 @@ async function checkProperties(concurrency, force) {
                     console.log(`property ${p.id} version ${p.prodVer} matched!`);
                     p.condition = true;
                     p.prodVerConfig = pv;
-                    p.newVerConfig = taskConfig.createVersion(pv);
+                    const deepCopy = JSON.parse(JSON.stringify(pv));
+                    p.newVerConfig = taskConfig.createVersion(deepCopy);
                     p.newVerConfig.description = `cloned from version ${p.prodVer} by ${taskConfig.operator}, ${taskConfig.comments}`;
                     if (taskConfig.condition(p.newVerConfig)) {
                         console.error(`Error: new version of property ${p.id} version ${p.prodVer} still matches the condition!`);

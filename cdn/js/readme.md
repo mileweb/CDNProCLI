@@ -34,7 +34,7 @@ node ./example.js
 You can study the example file [example.js](example.js) to learn the usage of of the library.
 
 # Tools
-There is currently 4 tools under the [tools](tools/) directory
+There are a few tools under the [tools](tools/) directory to help with administrative tasks.
 ## cdnPro.js
 This tool helps you to view some CDN Pro resources, such as customer, service quota. Usage:
 ```bash
