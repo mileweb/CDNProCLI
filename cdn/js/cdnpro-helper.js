@@ -375,10 +375,18 @@ const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout
 });
+let waitingQuestion = false;
 function askQuestion(query) {
+    waitingQuestion = true;
     return new Promise((resolve) => {
-        rl.question(query, resolve);
+        rl.question(query, (answer) => {
+            waitingQuestion = false;
+            resolve(answer);
+        });
     });
+}
+function isWaitingQuestion() {
+    return waitingQuestion;
 }
 
 const Diff = require('diff');
@@ -649,6 +657,7 @@ const cdnpro = {
     callServer: callServer,
     reqTimeRange: reqTimeRange,
     askQuestion: askQuestion,
+    isWaitingQuestion: isWaitingQuestion,
     diffObjects: diffObjects,
     getCustomer: getCustomer,
     listCustomers: listCustomers,

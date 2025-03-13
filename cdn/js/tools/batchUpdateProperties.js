@@ -99,6 +99,7 @@ async function main() {
     case 'test': testConfig(); break;
     default : console.error('Wrong step name.');
         console.error('Usage: node batchUpdateProperties.js task find|check|new|deploy');
+        process.exit(1);
         break;
     }
     process.exit(0);
@@ -354,7 +355,7 @@ async function newProperties(concurrency, force) {
             }
             p.validId = newVNum;
             saveDB(`created validation id for property ${p.id} new version ${p.newVer}, saving to ${dbName}`);
-            setTimeout(checkValidationAsync, 5000, p);
+            setTimeout(checkValidationAsync, 25000, p);
         //check the validation status, release the semaphore when done
         } else {
             console.log(`found validation ID for property ${p.id} new version ${p.newVer} ...`);
@@ -388,7 +389,9 @@ async function checkValidationAsync(p) {
         saveDB(`Aborted task, saving to ${dbName}`);
         process.exit(1);
     }else if (obj.status==='waiting'||obj.status==='in progress') {
-        console.log(`property ${p.id} new version ${p.newVer} validation is in progress ...`);
+        if (!cdnpro.isWaitingQuestion()) { //avoid clusting the console
+            console.log(`property ${p.id} new version ${p.newVer} validation is in progress ...`);
+        }
         setTimeout(checkValidationAsync, 5000, p);
     }else if (obj.status==='succeeded') {
         p.newVerValidated = true;
@@ -431,6 +434,7 @@ async function deployProperties() {
         return;
     }
     let newDNum = '';
+    sema.config(1); //deploy one customer at a time
     if (pList.some(p=>(!!p.deploymentTaskId))) {
         newDNum = pList[0].deploymentTaskId;
         if (pList.some(p=>p.deploymentTaskId != newDNum)) {
@@ -439,7 +443,8 @@ async function deployProperties() {
         }
         console.log(`properties to be deployed have the same deploymentTaskId ${newDNum}.`);
         console.log('Checking deployment status ...');
-        await checkDeploymentStatus(pList);
+        await sema.acquire();
+        checkDeploymentStatus(pList);
     } else { //create a new deployment task
         reqBody.name = `deploy ${cnt} properties, ${taskConfig.comments}`;
         console.log(`found ${cnt} properties of customer ${cid} to be deployed.`, reqBody);
@@ -483,33 +488,33 @@ async function deployProperties() {
         console.log(dispList);
         saveDB(`Tried to deploy ${pList.length} properties, saving results to ${dbName}`);
         //check deployment status
+        await sema.acquire();
         console.log('Checking deployment status ...');
-        await checkDeploymentStatus(pList);
+        setTimeout(checkDeploymentStatus, 20000, pList);
     }
+    await sema.allDone();
 }
 
 async function checkDeploymentStatus(pList) {
-    while (true) {
-        let ngOptions = cdnpro.buildAuth();
-        ngOptions.path = `/cdn/deploymentTasks/${pList[0].deploymentTaskId}`;
-        ngOptions.headers['On-Behalf-Of']=`${pList[0].cid}`;
-        const {obj, ctx} = await cdnpro.callServer(ngOptions);
-        if (ctx.error) {
-            console.error(`Error: checking deployment status of ${pList[0].deploymentTaskId}: ${ctx.error.message}`);
-            return;
-        }
-        if (obj.status === 'waiting' || obj.status === 'inprogress') {
-            console.log(`deployment task ${pList[0].deploymentTaskId} is in progress ...`);
-            await new Promise(resolve => setTimeout(resolve, 5000));
-        } else if (obj.status === 'succeeded') {
-            console.log(`deployment task ${pList[0].deploymentTaskId} succeeded!`);
-            pList.forEach(p => p.newVerDeployed = true);
-            saveDB(`Deployed ${pList.length} properties, saving to ${dbName}`);
-            return;
-        } else {
-            console.error(`Error: deployment task ${pList[0].deploymentTaskId} failed!`);
-            console.error(obj);
-            return;
-        }
+    let ngOptions = cdnpro.buildAuth();
+    ngOptions.path = `/cdn/deploymentTasks/${pList[0].deploymentTaskId}`;
+    ngOptions.headers['On-Behalf-Of']=`${pList[0].cid}`;
+    const {obj, ctx} = await cdnpro.callServer(ngOptions);
+    if (ctx.error) {
+        console.error(`Error: checking deployment status of ${pList[0].deploymentTaskId}: ${ctx.error.message}`);
+        process.exit(1);
+    }
+    if (obj.status === 'waiting' || obj.status === 'inprogress') {
+        console.log(`deployment task ${pList[0].deploymentTaskId} is in progress ...`);
+        setTimeout(checkDeploymentStatus, 5000, pList);
+    } else if (obj.status === 'succeeded') {
+        console.log(`deployment task ${pList[0].deploymentTaskId} succeeded!`);
+        pList.forEach(p => p.newVerDeployed = true);
+        saveDB(`Deployed ${pList.length} properties, saving to ${dbName}`);
+        sema.release();
+    } else {
+        console.error(`Error: deployment task ${pList[0].deploymentTaskId} failed!`);
+        console.error(obj);
+        process.exit(1);
     }
 }
