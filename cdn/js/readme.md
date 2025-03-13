@@ -76,7 +76,7 @@ This is a tool that scans all the production properties of a customer.
  2. (check) load each of the candidate property version in production to make sure if the condition is met
  3. (new) generate the new version locally, show diff, get approval to create on server, then validate
  4. (deploy) deploy the validated new versions in batch. Right before the deployment, make sure the
-    deployed version is not changed
+    deployed versions are not changed
 
 Usage:
 ```bash

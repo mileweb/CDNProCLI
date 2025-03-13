@@ -8,7 +8,7 @@
  2. (check) load each of candidate property version in production to make sure if the condition is met
  3. (new) generate the new version locally, show diff, get approval to create on server, then validate
  4. (deploy) deploy the validated new versions in batch. Right before the deployment, make sure the
-    deployed version is not changed
+    deployed versions are not changed
 
 Usage: node batchUpdateProperties.js taskName find|check|new|deploy
     taskName: the name of the task, which is a js file in the same directory
