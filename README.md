@@ -1,5 +1,5 @@
 ## Overview
-This repository provides some command line and scripting tools to provision [CDNetworks](https://www.cdnetworks.com) CDN Pro services.
+This repository provides some command line and scripting tools to provision the CDN Pro service.
 
 Currently, only the bash and javascript versions are available. Please visit the [bash CLI for CDN](cdn/bash/) or
 [Javascript library](cdn/js/) pages for further information.
