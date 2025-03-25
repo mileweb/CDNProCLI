@@ -390,9 +390,7 @@ function isWaitingQuestion() {
 }
 
 const Diff = require('diff');
-function diffObjects(a, b) {
-    const diff = Diff.diffJson(a, b);
-//    console.log('Diff:', diff);
+function getDiffTxt(diff) {
     let diffTxt = '';
     const colorText = (text, colorCode) => `\x1b[${colorCode}m${text}\x1b[0m`;
     const shorten = (s) => {
@@ -434,6 +432,16 @@ function diffObjects(a, b) {
         }
     });
     return diffTxt;
+}
+
+function diffObjects(a, b) {
+    const diff = Diff.diffJson(a, b);
+    return getDiffTxt(diff);
+}
+
+function diffLines(a, b) {
+    const diff = Diff.diffLines(a, b);
+    return getDiffTxt(diff);
 }
 
 async function getCustomer(customerId, o) {
@@ -659,6 +667,7 @@ const cdnpro = {
     askQuestion: askQuestion,
     isWaitingQuestion: isWaitingQuestion,
     diffObjects: diffObjects,
+    diffLines: diffLines,
     getCustomer: getCustomer,
     listCustomers: listCustomers,
     getProperty: getProperty,

@@ -242,10 +242,9 @@ async function checkProperties(concurrency, force) {
             throw new Error(`Error: getting property ${p.id} version ${p.prodVer}: ${e.message}!`);
         });
     }
+    await sema.allDone();
     if (cnt > 0) {
         console.log(`checked ${cnt} properties, found ${matched} matched.`);
-        await sema.allDone();
-        console.log(`Finally, checked ${cnt} properties, found ${matched} matched.`);
         saveDB(`saving the properties to ${dbName}`);
     } else {
         if (checked == properties.length) {
@@ -265,6 +264,7 @@ async function newProperties(concurrency, force) {
     //doNew({ind:0, cnt:0});
     let cnt = 0, validated = 0;
     sema.config(concurrency);
+    console.outBuffer = []; //buffer the console output during the question
     for (let ind = 0; ind < properties.length; ind ++) {
         let p = properties[ind];
         if ((p.newVerValidated != null && !force)|| p.condition === false || p.error) {
@@ -279,10 +279,27 @@ async function newProperties(concurrency, force) {
         }
         //create new version
         if (p.newVer == null) { //no new version yet
-            const diff = cdnpro.diffObjects(p.prodVerConfig, p.newVerConfig);
+            const stringifyReplacer = function(key, value) {
+                if ((key === 'edgeLogic'|| 
+                      key === 'loadBalancerLogic' ||
+                      key === 'format') && typeof value === 'string') {
+                    return value.split('\n');
+                } else {
+                    return value;
+                }
+            };
+            const str1 = JSON.stringify(p.prodVerConfig, stringifyReplacer, 2);
+            const str2 = JSON.stringify(p.newVerConfig, stringifyReplacer, 2);
+            //console.log(str1, str2);
+            const diff = cdnpro.diffLines(str1, str2);
+            console.log('---------------------');
             console.log(`property ${p.id} version ${p.prodVer} diff:`);
             console.log(diff);
             const answer = await cdnpro.askQuestion('Do you want to create a new version for this property? (y/n):');
+            if (console.outBuffer.length) {
+                console.log(console.outBuffer.join('\n'));
+                console.outBuffer = [];
+            }
             if (answer != 'y') {
                 console.log(`property ${p.id} version ${p.prodVer} skipped.`);
                 continue;
@@ -356,9 +373,9 @@ async function newProperties(concurrency, force) {
             }
             p.validId = newVNum;
             saveDB(`created validation id for property ${p.id} new version ${p.newVer}, saving to ${dbName}`);
-            setTimeout(checkValidationAsync, 30000, p);
-        //check the validation status, release the semaphore when done
-        } else {
+            setTimeout(checkValidationAsync, 30000, p); //check the validation status after 30s,
+                                                        //release the semaphore when done
+        } else { // already have a validation task ID, check the status now
             console.log(`found validation ID for property ${p.id} new version ${p.newVer} ...`);
             checkValidationAsync(p);
         }
@@ -396,7 +413,13 @@ async function checkValidationAsync(p) {
         setTimeout(checkValidationAsync, 10000, p);
     }else if (obj.status==='succeeded') {
         p.newVerValidated = true;
-        console.log(`property ${p.id} new version ${p.newVer} validated!`);
+        saveDB(null);
+        const msg = `property ${p.id} new version ${p.newVer} validated!`;
+        if (!cdnpro.isWaitingQuestion()) { //avoid clusting the console
+            console.log(msg);
+        } else {
+            console.outBuffer.push(msg);
+        }
         sema.release();
     } else {
         p.newVerValidated = false;
