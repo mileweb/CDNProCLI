@@ -392,6 +392,9 @@ function isWaitingQuestion() {
 const Diff = require('diff');
 function getDiffTxt(diff) {
     let diffTxt = '';
+    if (diff.length === 1 && diff[0].added != true && diff[0].removed != true) {
+        return diffTxt;
+    }
     const colorText = (text, colorCode) => `\x1b[${colorCode}m${text}\x1b[0m`;
     const shorten = (s) => {
         if (s.length > 102) {
@@ -444,7 +447,7 @@ function diffLines(a, b) {
     return getDiffTxt(diff);
 }
 
-async function getCustomer(customerId, o) {
+async function getCustomer(customerId, o = {verbose: 1}) {
     if (customerId === '--help') {
         return {usage: 'customerId', minArgs: 1, maxArgs: 1};
     }
@@ -481,7 +484,7 @@ function buildQueryParams(o, paramList) {
     return '';
 }
 
-async function listCustomers(o) {
+async function listCustomers(o = {verbose: 1}) {
     if (o === '--help') {
         return {usage: '', minArgs: 0, maxArgs: 0};
     }
@@ -498,7 +501,7 @@ async function listCustomers(o) {
     return customer.obj;
 }
 
-async function getPropertyVersion(id_or_domain, ver, o) {
+async function getPropertyVersion(id_or_domain, ver, o = {verbose: 1}) {
     if (id_or_domain === '--help') {
         return {usage: 'id_or_domain production|staging|latest|number', minArgs: 2, maxArgs: 2};
     }
@@ -539,7 +542,7 @@ async function getPropertyVersion(id_or_domain, ver, o) {
     return customer.obj;
 }
 
-function getProperty(id_or_domain, o) {
+function getProperty(id_or_domain, o = {verbose: 1}) {
     if (id_or_domain === '--help') {
         return {usage: 'id_or_domain', minArgs: 1, maxArgs: 1};
     }
@@ -549,7 +552,7 @@ function getProperty(id_or_domain, o) {
     return getPropertyVersion(id_or_domain, null, o);
 }
 
-async function listProperties(o) {
+async function listProperties(o = {verbose: 1}) {
     if (o === '--help') {
         return {usage: '', minArgs: 0, maxArgs: 0};
     }
@@ -565,7 +568,7 @@ async function listProperties(o) {
     return serviceQuotaList.obj;
 }
 
-async function getServiceQuota(customerId, o) {
+async function getServiceQuota(customerId, o = {verbose: 1}) {
     if (customerId === '--help') {
         return {usage: 'customerId', minArgs: 1, maxArgs: 1};
     }
@@ -582,7 +585,7 @@ async function getServiceQuota(customerId, o) {
     return serviceQuota.obj;
 }
 
-async function listServiceQuotas(o) {
+async function listServiceQuotas(o = {verbose: 1}) {
     if (o === '--help') {
         return {usage: '', minArgs: 0, maxArgs: 0};
     }
@@ -610,7 +613,7 @@ async function patchServiceQuota(serviceQuotaId, obj) {
     return serviceQuota.obj;
 }
 
-async function getSystemConfigs(o) {
+async function getSystemConfigs(o = {verbose: 1}) {
     if (o === '--help') {
         return {usage: '', minArgs: 0, maxArgs: 0};
     }
@@ -635,7 +638,7 @@ async function patchSystemConfigs(obj) {
     return systemConfig.obj;
 }
 
-async function getBandwidth(customerId, o) {
+async function getBandwidth(customerId, o = {verbose: 1}) {
     if (customerId === '--help') {
         return {usage: 'customerId', minArgs: 1, maxArgs: 1};
     }
