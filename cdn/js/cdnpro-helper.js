@@ -408,16 +408,19 @@ function getDiffTxt(diff) {
         return colorText('...'+n+' lines skipped...\n', 36);
     };
     diff.forEach((part, ind) => {
-        let change = part.added ? '+' : part.removed ? '-' : null;
-        let lines = part.value.split('\n').slice(0,-1);
-        if (change === '+') {
-            diffTxt += colorText(change + lines.join('\n'+change) + '\n', 32);
-        } else if (change === '-') {
-            diffTxt += colorText(change + lines.join('\n'+change) + '\n', 31);
+        let lines = part.value.split('\n');
+        if (ind !== diff.length - 1) {
+            lines.pop(); // remove the last empty line
+        }
+        if (part.added) {
+            diffTxt += colorText('+' + lines.join('\n+') + '\n', 32);
+        } else if (part.removed) {
+            diffTxt += colorText('-' + lines.join('\n-') + '\n', 31);
         } else {
             if (ind === 0) {
                 if (lines.length > 4) {
-                    diffTxt += skipLines(lines.length-3) + lines.slice(-3).map(shorten).join('\n') + '\n';
+                    diffTxt += skipLines(lines.length-3) +
+                               lines.slice(-3).map(shorten).join('\n') + '\n';
                 } else {
                     diffTxt += lines.map(shorten).join('\n') + '\n';
                 }
@@ -427,7 +430,7 @@ function getDiffTxt(diff) {
                 } else {
                     diffTxt += lines.map(shorten).join('\n') + '\n';
                 }
-            } else if (lines.length > 6) {
+            } else if (lines.length > 7) {
                 diffTxt += lines.slice(0,3).map(shorten).join('\n') + '\n'+skipLines(lines.length-6) + lines.slice(-3).map(shorten).join('\n') + '\n'; 
             } else {
                 diffTxt += lines.map(shorten).join('\n') + '\n';
