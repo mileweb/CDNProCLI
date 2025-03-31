@@ -283,7 +283,7 @@ async function newProperties(concurrency, force) {
                 if ((key === 'edgeLogic'|| 
                       key === 'loadBalancerLogic' ||
                       key === 'format') && typeof value === 'string') {
-                    return value.split('\n');
+                    return value.split('\n'); //split the string into lines
                 } else {
                     return value;
                 }
@@ -336,7 +336,7 @@ async function newProperties(concurrency, force) {
             saveDB(`created new version ${p.newVer} for property ${p.id}, saving to ${dbName}`);
         }
         //validate the new version
-        sema.acquire();
+        await sema.acquire();
         p.newVerValidated = undefined;
         p.deploymentTaskId = undefined;
         p.newVerDeployed = undefined;
@@ -459,7 +459,7 @@ async function deployProperties() {
     }
     let newDNum = '';
     sema.config(1); //deploy one customer at a time
-    if (pList.some(p=>(!!p.deploymentTaskId))) {
+    if (pList.some(p=>(!!p.deploymentTaskId))) { //if some properties are already being deployed
         newDNum = pList[0].deploymentTaskId;
         if (pList.some(p=>p.deploymentTaskId != newDNum)) {
             console.error('Error: properties to be deployed have different deploymentTaskId.');
