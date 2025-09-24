@@ -267,7 +267,8 @@ if [ "$method" = "POST" -o "$method" = "PUT" -o "$method" = "PATCH" ]; then
     esac
     api_curl_cmd+=" -d @'$jsonfn'"
   elif [ "$jsonbody" ]; then
-    api_curl_cmd+=" -d '$jsonbody'"
+    escaped_jsonbody=$(echo "$jsonbody" | sed "s/'/'\\\''/g")
+    api_curl_cmd+=" -d '$escaped_jsonbody'"
   else
     echo "Method \"$method\" requires a valid json file to be specified after -j"
     echo "                   or a json body specified after -b"
