@@ -24,7 +24,6 @@ const { resolve } = require('path');
 const taskFileName = resolve(process.cwd(), process.argv[2]);
 const { taskConfig } = require(taskFileName);
 
-//const testPV = JSON.parse(fs.readFileSync('pv.json')).configs;
 const stepName = process.argv[3];
 let dbName = taskConfig.dbName;
 let updateN = taskConfig.batchLimit || 9999; //number of properties to change.
@@ -38,10 +37,10 @@ const sema = {
     cnt:0, max:3,
     resolve: null,
     cleanResolve: null,
+    //configure the max number of concurrent tasks
     config: function(max) {
         if (this.cnt||this.resolve||this.cleanResolve) throw new Error('semaphore is in use!');
         this.max = max;
-//        console.log(`semaphore max is configured to ${max}`);
     },
     acquire: async function() {
         if (this.cnt < this.max) this.cnt ++;
@@ -96,7 +95,6 @@ async function main() {
     case 'new'   : await newProperties(2); break;
     case 'new-f'   : await newProperties(2, true); break; //force new
     case 'deploy': await deployProperties(); break;
-    case 'test': testConfig(); break;
     default : console.error('Wrong step name.');
         console.error('Usage: node batchUpdateProperties.js task find|check|new|deploy');
         process.exit(1);
@@ -110,11 +108,6 @@ main();
 function saveDB(msg) {
     if (msg) console.log(msg);
     fs.writeFileSync(dbName, JSON.stringify(properties, null, 2));
-}
-
-function testConfig() {
-    taskConfig.createVersion(testPV);
-    console.log(testPV);
 }
 
 /*///////////////////////////// Find Properties /////////////////////////////////
@@ -174,7 +167,7 @@ async function findProperties() {
     console.log(`${findStatus.errCnt} have errors.`);
     console.log(`${findStatus.unmatchedCnt} do not match condition.`);
 
-    if (findStatus.cnt > 300) {
+    if (findStatus.cnt > 500) {
         throw new Error(`Too many properties, please set or refine findFilter in ${process.argv[2]}`);
     }
     if (findStatus.newCnt) {
