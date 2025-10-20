@@ -226,6 +226,7 @@ const callServer = function(options, proc) {
                 const resTime = Date.now();
                 ctx.times.finish = resTime;
                 ctx.err = err; //in case of error, ctx.err is set
+                ctx.err.statusCode = 502;
                 proc(null, ctx);
             }
         });
@@ -259,6 +260,7 @@ const callServer = function(options, proc) {
                 const resTime = Date.now();
                 ctx.times.finish = resTime;
                 ctx.err = new Error('Request timed out after 30 seconds.');
+                ctx.err.statusCode = 504;
                 proc(null, ctx);
             }
         });
