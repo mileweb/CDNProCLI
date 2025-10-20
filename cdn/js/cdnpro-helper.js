@@ -138,7 +138,7 @@ const callServer = function(options, proc) {
             if (res.statusCode !== 200 && res.statusCode !== 201) {
                 if (options.verbose > 0) {
                     console.error(`Did not get an OK from the server, Code: ${res.statusCode}`);
-                    console.error(`${options.method} ${options.host}${options.path}`);
+                    console.error(`${options.method} ${options.hostname}${options.path}`);
                     console.error('Response Headers', res.headers);
                     console.error('Request Headers', options.headers);
                 }
@@ -217,7 +217,7 @@ const callServer = function(options, proc) {
 
         request.on('error', (err) => {
             if (options.verbose > 0) {
-                console.error('Request to '+options.host+options.path+` got error:\n${err.message}`);
+                console.error('Request to '+options.hostname+options.path+` got error:\n${err.message}`);
             }
             if (reject) {
                 err.ctx = ctx;
@@ -250,7 +250,7 @@ const callServer = function(options, proc) {
 
         request.setTimeout(30000, () => {
             if (options.verbose > 0) {
-                console.error('Request to '+options.host+options.path+' timed out after 30 seconds.');
+                console.error('Request to '+options.hostname+options.path+' timed out after 30 seconds.');
             }
             if (reject) {
                 const err = new Error('Request timed out after 30 seconds.');
