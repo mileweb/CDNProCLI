@@ -119,7 +119,11 @@ const callServer = function(options, proc) {
     options.agent = new scheme.Agent(options);
 
     if (options.verbose > 1) {
-        console.log(options.method, options.scheme+'//'+options.hostname+options.path);
+        if (options.port) {
+            console.log(options.method, options.scheme+'://'+options.hostname+':'+options.port+options.path);
+        } else {
+            console.log(options.method, options.scheme+'://'+options.hostname+options.path);
+        }
         console.log(options.headers);
         if (body) console.log(body, '\n');
     }
