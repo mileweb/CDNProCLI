@@ -135,7 +135,9 @@ const callServer = function(options, proc) {
             ctx._res = res;
             ctx.times.header = hdrTime;
             ctx.remoteAddress = res.socket.remoteAddress;
-            res.socket.peerCertificate = res.socket.getPeerCertificate();
+            if (options.scheme === 'https') {
+                res.socket.peerCertificate = res.socket.getPeerCertificate();
+            }
             if (options.debug) {
                 console.log(stringify(res));
             }
