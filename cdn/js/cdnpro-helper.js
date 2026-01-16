@@ -44,6 +44,9 @@ const buildAuth = function(serverInfo, options) {
       abortOnError: true,  //abort if status code is not 200 or 201
       verbose: 0,
     };
+    if (serverInfo.family) {
+        r.family = serverInfo.family;
+    }
     if (options) {
         if (options.noCache === true) {
             r.headers['Cache-Control']='no-cache';
