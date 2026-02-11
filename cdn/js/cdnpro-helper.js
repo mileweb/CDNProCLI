@@ -192,6 +192,9 @@ const callServer = function(options, proc) {
                             proc(obj, ctx);
                     } else {
                         const err = new Error(`Status code is ${res.statusCode}, not 200 or 201`);
+                        if (options.verbose > 0) {
+                            console.error('Error Body:', obj);
+                        }
                         err.body = obj;
                         if (reject) {
                             reject(err);
