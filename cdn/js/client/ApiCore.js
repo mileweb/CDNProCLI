@@ -174,7 +174,7 @@ class ApiCore {
             const totalSec = (resTime - stime) / 1000;
             // eslint-disable-next-line no-console
             console.log(
-              `hdrTime ${headerSec}s, total ${totalSec}s, got status ${res.statusCode} w/ ${len} => ${data.length} bytes from ${options.hostname}${options.path}`,
+              `hdrTime ${headerSec}s, total ${totalSec}s, got status ${res.statusCode} w/ ${len} => ${data.length} bytes from ${options.method} ${options.hostname}${options.path}`,
             );
           }
 
