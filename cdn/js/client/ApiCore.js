@@ -94,7 +94,7 @@ class ApiCore {
         Authorization: ` Basic ${authData}`,
         Date: dateStr,
         'Accept-Encoding': 'gzip',
-        'User-Agent': 'CDNProCLI-js/1.0',
+        'User-Agent': 'CDNProCLI-js/1.1',
       },
       timeout: 10000,
       abortOnError: true,
@@ -176,6 +176,10 @@ class ApiCore {
             console.log(
               `hdrTime ${headerSec}s, total ${totalSec}s, got status ${res.statusCode} w/ ${len} => ${data.length} bytes from ${options.method} ${options.hostname}${options.path}`,
             );
+            if (options.verbose > 1 && statusOk === false) {
+              // eslint-disable-next-line no-console
+              console.log(data);
+            }
           }
 
           // Decode JSON if indicated; otherwise return raw string.
