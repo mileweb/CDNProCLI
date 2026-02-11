@@ -65,6 +65,7 @@ Optional flags:
   --onBehalfOf <customerId>     sets On-Behalf-Of header
   --reportRange <self-only|self+children|children-only> sets Report-Range header
   --verbose <0-5>               enables verbose logging in HTTP core
+  --resourceCustomerId <id|me>  customerId used for /cdn/resourceSummary (default: me)
   --write                       enable write probes (creates/deletes a webhook)
   --webhookUrl <url>            webhook URL used in write probe (default: https://example.invalid/webhook)
 `);
@@ -128,6 +129,9 @@ Optional flags:
 
   await probe('validations.list', () => client.validations.list({ limit: 1 }, reqDefaults));
   await probe('webhooks.list', () => client.webhooks.list({ limit: 1 }, reqDefaults));
+
+  // Resource summary can be called with an explicit customerId. Use "me" if caller supports it, otherwise omit.
+  await probe('resourceSummary.getByCustomer', () => client.resourceSummary.getByCustomer(args.resourceCustomerId || 'me', reqDefaults));
 
   // Purge tokens requires target; try production by default.
   await probe('purges.tokens', () => client.purges.tokens({ target: 'production' }, reqDefaults));

@@ -12,6 +12,7 @@ const { Validations } = require('./client/Validations');
 const { Webhooks } = require('./client/Webhooks');
 const { Purges } = require('./client/Purges');
 const { Geo } = require('./client/Geo');
+const { ResourceSummary } = require('./client/ResourceSummary');
 
 /**
  * CDN Pro API client.
@@ -42,6 +43,7 @@ class CDNProClient {
     this.webhooks = new Webhooks(this._api);
     this.purges = new Purges(this._api);
     this.geo = new Geo(this._api);
+    this.resourceSummary = new ResourceSummary(this._api);
   }
 
   /**
