@@ -65,6 +65,7 @@ appname=$0
 uribase=/cdn
 [[ ${appname} == *adminapi.sh ]] && uribase=/ngadmin
 [[ ${appname} == *roleapi.sh ]] && uribase=/ngrole
+[[ ${appname} == *hdtapi.sh ]] && uribase=/hdt
 
 while readlink "${appname}" > /dev/null; do
   appname=`readlink "${appname}"`
