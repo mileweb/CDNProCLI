@@ -275,6 +275,8 @@ const callServer = function(options, proc) {
                 ctx.err.statusCode = 504;
                 proc(null, ctx);
             }
+            // close the connection
+            request.destroy();
         });
 
         if (body) request.write(body); //for POST
